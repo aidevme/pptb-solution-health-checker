@@ -1,0 +1,63 @@
+{
+  "name": "@aidevme/pptb-solution-health-checker",
+  "version": "0.1.0",
+  "displayName": "Solution Health Checker",
+  "description": "PPTB plugin for Dataverse and Power Platform solution health checks. Goes beyond Microsoft's Solution Checker with bundled rules covering schema, security, ALM, and flow governance.",
+  "main": "index.html",
+  "icon": "icon.svg",
+  "type": "module",
+  "license": "MIT",
+  "author": {
+    "name": "AIDEVME",
+    "url": "https://github.com/aidevme"
+  },
+  "contributors": [
+    {
+      "name": "AIDEVME",
+      "url": "https://github.com/aidevme"
+    },
+    {
+      "name": "Claude Code"
+    },
+    {
+      "name": "ChatGPT"
+    }
+  ],
+  "configurations": {
+    "repository": "https://github.com/aidevme/pptb-solution-health-checker",
+    "readmeUrl": "https://raw.githubusercontent.com/aidevme/pptb-solution-health-checker/main/README.md"
+  },
+  "features": {
+    "multiConnection": "optional",
+    "minAPI": "1.0.17"
+  },
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc && vite build",
+    "preview": "vite preview",
+    "typecheck": "tsc --noEmit",
+    "validate": "pptb-validate",
+    "clean": "npx rimraf dist"
+  },
+  "dependencies": {
+    "@fluentui/react-components": "^9.54.0",
+    "@fluentui/react-icons": "^2.0.244",
+    "cytoscape": "^3.34.0",
+    "jszip": "^3.10.1",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0"
+  },
+  "devDependencies": {
+    "@pptb/types": "latest",
+    "@types/cytoscape": "^3.21.9",
+    "@types/react": "^18.2.0",
+    "@types/react-dom": "^18.2.0",
+    "@vitejs/plugin-react": "^4.2.0",
+    "typescript": "^5.3.3",
+    "vite": "^5.0.11"
+  },
+  "files": [
+    "dist",
+    "npm-shrinkwrap.json"
+  ]
+}

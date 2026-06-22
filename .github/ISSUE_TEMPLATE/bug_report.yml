@@ -1,0 +1,78 @@
+name: Bug Report
+description: Something is not working as expected
+labels: ["bug", "triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to report a bug. Please fill in as much detail as possible.
+
+  - type: input
+    id: version
+    attributes:
+      label: Plugin Version
+      description: Which version of the PPTB solution health checker are you using?
+      placeholder: "e.g. 1.2.0"
+    validations:
+      required: true
+
+  - type: input
+    id: environment
+    attributes:
+      label: Environment
+      description: Dataverse / Power Platform environment type
+      placeholder: "e.g. Production, Sandbox, Trial"
+    validations:
+      required: true
+
+  - type: textarea
+    id: description
+    attributes:
+      label: Bug Description
+      description: A clear and concise description of what the bug is.
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to Reproduce
+      description: How can we reproduce the issue?
+      placeholder: |
+        1. Run health check on solution '...'
+        2. Select rule '...'
+        3. Observe error '...'
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected Behavior
+      description: What did you expect to happen?
+    validations:
+      required: true
+
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual Behavior
+      description: What actually happened? Include error messages or screenshots if relevant.
+    validations:
+      required: true
+
+  - type: textarea
+    id: solution_info
+    attributes:
+      label: Solution Under Test
+      description: Relevant details about the solution being checked (publisher prefix, managed/unmanaged, approximate size).
+      placeholder: |
+        - Publisher prefix: contoso_
+        - Managed: No
+        - Components: ~50 entities, 10 flows
+
+  - type: textarea
+    id: additional
+    attributes:
+      label: Additional Context
+      description: Any other context, logs, or screenshots.

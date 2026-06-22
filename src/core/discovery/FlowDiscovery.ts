@@ -1,0 +1,170 @@
+import type { IDataverseClient } from '../dataverse/IDataverseClient.js';
+import type { Flow } from '../types/blueprint.js';
+import type { FetchLogger } from '../utils/FetchLogger.js';
+import type { IDiscoverer } from './IDiscoverer.js';
+import { FlowDefinitionParser } from '../parsers/FlowDefinitionParser.js';
+import { withAdaptiveBatch } from '../utils/withAdaptiveBatch.js';
+import { buildOrFilter } from '../utils/odata.js';
+import { normalizeGuid } from '../utils/guid.js';
+
+interface WorkflowMetaRecord {
+  workflowid: string;
+  name: string;
+  description: string | null;
+  statecode: number;
+  statuscode: number;
+  primaryentity: string | null;
+  scope: number;
+  _ownerid_value: string;
+  _modifiedby_value: string;
+  modifiedon: string;
+  createdon: string;
+  '_ownerid_value@OData.Community.Display.V1.FormattedValue'?: string;
+  '_modifiedby_value@OData.Community.Display.V1.FormattedValue'?: string;
+  'primaryentity@OData.Community.Display.V1.FormattedValue'?: string;
+}
+
+interface WorkflowClientDataRecord {
+  workflowid: string;
+  clientdata: string | null;
+}
+
+export class FlowDiscovery implements IDiscoverer<Flow> {
+  private readonly client: IDataverseClient;
+  private onProgress?: (current: number, total: number) => void;
+  private logger?: FetchLogger;
+
+  constructor(
+    client: IDataverseClient,
+    onProgress?: (current: number, total: number) => void,
+    logger?: FetchLogger
+  ) {
+    this.client = client;
+    this.onProgress = onProgress;
+    this.logger = logger;
+  }
+
+  discoverByIds(ids: string[]): Promise<Flow[]> {
+    return this.getFlowsByIds(ids);
+  }
+
+  async getFlowsByIds(workflowIds: string[]): Promise<Flow[]> {
+    if (workflowIds.length === 0) return [];
+
+    // Pass 1 — fetch all metadata fields (no clientdata) in adaptive batches
+    const { results: metaRecords } = await withAdaptiveBatch<string, WorkflowMetaRecord>(
+      workflowIds,
+      async (batch) => {
+        const filter = `(${buildOrFilter(batch, 'workflowid', { guids: true })}) and category eq 5`;
+        const response = await this.client.query<WorkflowMetaRecord>('workflows', {
+          select: [
+            'workflowid', 'name', 'description', 'statecode', 'statuscode',
+            'primaryentity', 'scope', '_ownerid_value', '_modifiedby_value',
+            'modifiedon', 'createdon',
+          ],
+          filter,
+        });
+        return response.value;
+      },
+      {
+        initialBatchSize: 20,
+        step: 'Flow Discovery',
+        entitySet: 'workflows (metadata)',
+        logger: this.logger,
+        // Use workflowIds.length as the stable total for both passes
+        onProgress: (done) => this.onProgress?.(Math.floor(done / 2), workflowIds.length),
+      }
+    );
+
+    // Pass 2 — fetch clientdata in small adaptive batches (large JSON payload)
+    const fetchedIds = metaRecords.map(r => r.workflowid);
+    const idToName = new Map(metaRecords.map(r => [r.workflowid.toLowerCase(), r.name]));
+    const clientDataMap = new Map<string, string | null>();
+
+    const { results: cdRecords } = await withAdaptiveBatch<string, WorkflowClientDataRecord>(
+      fetchedIds,
+      async (batch) => {
+        const filter = `(${buildOrFilter(batch, 'workflowid', { guids: true })}) and category eq 5`;
+        const response = await this.client.query<WorkflowClientDataRecord>('workflows', {
+          select: ['workflowid', 'clientdata'],
+          filter,
+        });
+        return response.value;
+      },
+      {
+        initialBatchSize: 3,
+        step: 'Flow Discovery',
+        entitySet: 'workflows (clientdata)',
+        logger: this.logger,
+        // Use workflowIds.length as the stable total; offset by half of Pass 1
+        onProgress: (done) => this.onProgress?.(
+          Math.floor(workflowIds.length / 2) + Math.floor(done / 2),
+          workflowIds.length
+        ),
+        getBatchLabel: (batch) => batch.map(id => idToName.get(normalizeGuid(id)) ?? id).join(', '),
+      }
+    );
+
+    // Normalise workflowid (lowercase, no braces) for consistent map keys
+    for (const r of cdRecords) {
+      clientDataMap.set(normalizeGuid(r.workflowid), r.clientdata ?? null);
+    }
+
+    this.onProgress?.(workflowIds.length, workflowIds.length);
+    return metaRecords.map(r =>
+      this.mapToFlow(r, clientDataMap.get(normalizeGuid(r.workflowid)) ?? null)
+    );
+  }
+
+  async getFlowsForEntity(logicalName: string): Promise<Flow[]> {
+    // Guard against OData injection: entity logical names are lowercase alphanumeric + underscores
+    if (!/^[a-z][a-z0-9_]*$/.test(logicalName)) {
+      throw new Error(`Invalid entity logical name: ${logicalName}`);
+    }
+    try {
+      const response = await this.client.query<WorkflowMetaRecord & { clientdata: string | null }>('workflows', {
+        select: [
+          'workflowid', 'name', 'description', 'statecode', 'statuscode',
+          'primaryentity', 'scope', '_ownerid_value', '_modifiedby_value',
+          'modifiedon', 'createdon', 'clientdata',
+        ],
+        filter: `category eq 5 and primaryentity eq '${logicalName}'`,
+      });
+      return response.value.map(r => this.mapToFlow(r, r.clientdata));
+    } catch {
+      return [];
+    }
+  }
+
+  private mapToFlow(record: WorkflowMetaRecord, clientdata: string | null): Flow {
+    const definition = FlowDefinitionParser.parse(clientdata, record.name);
+
+    let state: Flow['state'] = 'Draft';
+    if (record.statecode === 1) state = 'Active';
+    else if (record.statecode === 2) state = 'Suspended';
+
+    let scopeName = 'Unknown';
+    if (record.scope === 1) scopeName = 'User';
+    else if (record.scope === 2) scopeName = 'Business Unit';
+    else if (record.scope === 4) scopeName = 'Organization';
+
+    return {
+      id: record.workflowid,
+      name: record.name,
+      description: record.description,
+      state,
+      stateCode: record.statecode,
+      entity: record.primaryentity,
+      entityDisplayName: record['primaryentity@OData.Community.Display.V1.FormattedValue'] || null,
+      scope: record.scope,
+      scopeName,
+      owner: record['_ownerid_value@OData.Community.Display.V1.FormattedValue'] ?? 'Unknown',
+      ownerId: record._ownerid_value,
+      modifiedBy: record['_modifiedby_value@OData.Community.Display.V1.FormattedValue'] ?? 'Unknown',
+      modifiedOn: record.modifiedon,
+      createdOn: record.createdon,
+      definition,
+      hasExternalCalls: definition.externalCalls.length > 0,
+    };
+  }
+}

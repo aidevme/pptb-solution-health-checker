@@ -1,0 +1,86 @@
+name: New Health Check Rule
+description: Propose a new declarative rule for the health check engine
+labels: ["new-rule", "triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Rules are the core of PPTB Solution Health Checker. Use this template to propose a new declarative rule — no plugin update required to ship it.
+
+  - type: input
+    id: rule_name
+    attributes:
+      label: Rule Name
+      description: A short, descriptive name for the rule (e.g. "No active flows owned by disabled users")
+      placeholder: "e.g. Flows must have a non-interactive owner"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: category
+    attributes:
+      label: Rule Category
+      description: Which health check category does this rule belong to?
+      options:
+        - Schema
+        - Security
+        - ALM
+        - Flow governance
+        - Performance
+        - Other
+    validations:
+      required: true
+
+  - type: dropdown
+    id: severity
+    attributes:
+      label: Suggested Severity
+      options:
+        - Critical
+        - High
+        - Medium
+        - Low
+        - Informational
+    validations:
+      required: true
+
+  - type: textarea
+    id: description
+    attributes:
+      label: Rule Description
+      description: What does this rule check? What problem does it detect?
+      placeholder: "This rule detects..."
+    validations:
+      required: true
+
+  - type: textarea
+    id: rationale
+    attributes:
+      label: Rationale / Best Practice Reference
+      description: Why is this rule important? Link to Microsoft docs, community best practices, or real-world incidents if possible.
+    validations:
+      required: true
+
+  - type: textarea
+    id: detection
+    attributes:
+      label: Detection Logic
+      description: How should the rule detect a violation? Include FetchXML, Power Fx expressions, API calls, or pseudocode if you have them.
+      render: xml
+
+  - type: textarea
+    id: remediation
+    attributes:
+      label: Suggested Remediation
+      description: What should a developer do to resolve a violation flagged by this rule?
+
+  - type: textarea
+    id: false_positives
+    attributes:
+      label: Known False Positives / Exceptions
+      description: Are there legitimate scenarios where this rule should not apply?
+
+  - type: textarea
+    id: additional
+    attributes:
+      label: Additional Context

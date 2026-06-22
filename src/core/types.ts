@@ -1,0 +1,91 @@
+/**
+ * Represents a Power Platform Publisher
+ */
+export interface Publisher {
+  publisherid: string;
+  uniquename: string;
+  friendlyname: string;
+  customizationprefix: string;
+}
+
+/**
+ * Represents a Power Platform Solution
+ */
+export interface Solution {
+  solutionid: string;
+  uniquename: string;
+  friendlyname: string;
+  version: string;
+  ismanaged: boolean;
+  publisherid: {
+    uniquename: string;
+    friendlyname: string;
+  };
+}
+
+/**
+ * Represents Dataverse Entity Metadata
+ */
+export interface EntityMetadata {
+  LogicalName: string;
+  SchemaName: string;
+  DisplayName: {
+    UserLocalizedLabel?: {
+      Label: string;
+    };
+  };
+  MetadataId: string;
+  EntitySetName: string;
+  PrimaryIdAttribute: string;
+  PrimaryNameAttribute: string;
+  IsCustomEntity: boolean;
+  IsCustomizable: {
+    Value: boolean;
+  };
+  IsManaged: boolean;
+  Description?: {
+    UserLocalizedLabel?: {
+      Label: string;
+    };
+  };
+}
+
+/**
+ * Represents a plugin step image (pre or post)
+ */
+export interface ImageDefinition {
+  id: string;
+  name: string;
+  imageType: 'PreImage' | 'PostImage';
+  attributes: string[];
+  messagePropertyName: string;
+}
+
+/**
+ * Represents a complete plugin step with all metadata
+ */
+export interface PluginStep {
+  id: string;
+  name: string;
+  stage: number;
+  stageName: string;
+  mode: number;
+  modeName: string;
+  rank: number;
+  message: string;
+  entity: string | null;
+  assemblyName: string;
+  typeName: string;
+  pluginTypeId: string;
+  filteringAttributes: string[];
+  description: string | null;
+  asyncAutoDelete: boolean;
+  configuration: string | null;
+  customConfiguration: string | null;
+  preImage: ImageDefinition | null;
+  postImage: ImageDefinition | null;
+  impersonatingUserId: string | null;
+  impersonatingUserName: string | null;
+  stateCode: number;
+  state: 'Enabled' | 'Disabled';
+}

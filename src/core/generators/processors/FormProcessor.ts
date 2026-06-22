@@ -5,6 +5,22 @@ import type { EntityMetadata } from '../../types.js';
 import { FormDiscovery } from '../../discovery/FormDiscovery.js';
 import { normalizeGuid, normalizeBatch } from '../../utils/guid.js';
 
+/**
+ * Fetches form definitions for every entity in scope and filters them to those
+ * that belong to the selected solutions.
+ *
+ * @remarks
+ * Dataverse solution components carry a `rootcomponentbehavior` flag that
+ * controls subcomponent inclusion.  When the value is `0` ("include all
+ * subcomponents"), every form for that entity is implicitly part of the
+ * solution even if the form has no explicit `solutioncomponent` row.  For
+ * entities without this flag only forms whose ID appears in `formIds` are
+ * included.
+ *
+ * `entitiesWithAllSubcomponents` must contain the **MetadataId** (not the
+ * logical name) of entities with `rootcomponentbehavior=0`; the processor
+ * builds the logical-name → MetadataId mapping internally.
+ */
 export async function processForms(
   client: IDataverseClient,
   entities: EntityMetadata[],

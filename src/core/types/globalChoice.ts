@@ -21,6 +21,7 @@ export interface GlobalChoiceOption {
   label: string;
   description?: string;
   color?: string;
+  /** Optional string alias used when integrating with external systems (e.g. virtual table providers); absent on most options. */
   externalValue?: string;
 }
 

@@ -34,6 +34,20 @@ interface RawPluginImage {
   messagepropertyname: string;
 }
 
+/**
+ * Discovers SDK Message Processing Steps (plugin steps) from Dataverse.
+ *
+ * @remarks
+ * Three related entities are joined via `$expand` in the step query:
+ * - `sdkmessageid` — the message name (e.g. "Create", "Update")
+ * - `plugintypeid` — the assembly and type name of the plugin implementation
+ * - `sdkmessagefilterid` — the primary entity the step is registered against
+ *
+ * Pre- and post-images are fetched in a separate second pass against
+ * `sdkmessageprocessingstepimages`, filtered by `_sdkmessageprocessingstepid_value`.
+ * The image lookup uses GUIDs wrapped in braces (`{...}`) because the Dataverse
+ * `eq` filter for this lookup field requires that format; bare GUIDs are rejected.
+ */
 export class PluginDiscovery implements IDiscoverer<PluginStep> {
   private readonly client: IDataverseClient;
   private onProgress?: (current: number, total: number) => void;

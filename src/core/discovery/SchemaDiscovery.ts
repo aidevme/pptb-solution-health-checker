@@ -2,7 +2,15 @@ import type { IDataverseClient } from '../dataverse/IDataverseClient.js';
 import type { DetailedEntityMetadata } from '../types/blueprint.js';
 
 /**
- * Discovers entity schema and metadata
+ * Retrieves detailed entity schema from the Dataverse metadata API for a single entity by logical name.
+ *
+ * @remarks
+ * The `$expand` clause requests `Attributes`, all three relationship collections, and `Keys`.
+ * Attribute type-specific properties (`MaxLength`, `Targets`, `Precision`, etc.) are not
+ * listed in `$select` for the `Attributes` sub-expand — the metadata API returns them
+ * automatically as part of the concrete type payload even when not explicitly selected.
+ * Listing them would require knowing the concrete attribute type in advance, which is only
+ * known after the response arrives.
  */
 export class SchemaDiscovery {
   private readonly client: IDataverseClient;
@@ -11,11 +19,6 @@ export class SchemaDiscovery {
     this.client = client;
   }
 
-  /**
-   * Get detailed schema for a specific entity
-   * @param logicalName Entity logical name
-   * @returns Detailed entity metadata with attributes, relationships, and keys
-   */
   async getEntitySchema(logicalName: string): Promise<DetailedEntityMetadata> {
     if (!/^[a-z][a-z0-9_]*$/.test(logicalName)) {
       throw new TypeError(`Invalid entity logical name: ${logicalName}`);
@@ -76,9 +79,6 @@ export class SchemaDiscovery {
     }
   }
 
-  /**
-   * Get human-readable ownership type name
-   */
   private getOwnershipTypeName(ownershipType?: number): string {
     switch (ownershipType) {
       case 1:

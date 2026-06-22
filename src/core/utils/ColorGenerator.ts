@@ -31,9 +31,16 @@ const PREDEFINED_COLORS: Record<string, PublisherColors> = {
 };
 
 /**
- * Get complete publisher color scheme for class diagrams
- * @param prefix Publisher customization prefix
- * @returns PublisherColors object with fill, stroke, and text colors
+ * Returns the color scheme for a publisher prefix.
+ *
+ * @remarks
+ * Well-known prefixes (e.g. `''`, `msft`, `mscrm`) return fixed Microsoft-brand colors.
+ * All other prefixes are mapped deterministically via a djb2-style hash into an HSL
+ * color space (hue full-range, saturation 60–80 %, lightness 40–60 %) — the same prefix
+ * always produces the same color, across sessions and environments.
+ * Stroke is the fill darkened by 30 %; text is `#fff` or `#000` chosen for WCAG AA contrast.
+ *
+ * @param prefix - Publisher customization prefix (case-insensitive, leading/trailing whitespace ignored)
  */
 export function getPublisherColors(prefix: string): PublisherColors {
   const normalizedPrefix = prefix.toLowerCase().trim();

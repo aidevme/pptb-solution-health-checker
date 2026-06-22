@@ -33,6 +33,20 @@ interface RawWorkflowXaml {
   xaml?: string;
 }
 
+/**
+ * Discovers Classic Workflows (background and real-time) from the `workflows` entity.
+ *
+ * @remarks
+ * Dataverse stores two records per published Classic Workflow: a Definition (type=1) and
+ * an Activation (type=2), each with a distinct `workflowid`. Both can appear as solution
+ * components. This class deduplicates by `primaryentity|name`, keeping type=1 as the
+ * canonical record because it carries the editable XAML and is what solution components
+ * reference.
+ *
+ * XAML is fetched in a separate second pass with a reduced batch size of 5 because XAML
+ * payloads can be several hundred KB each; combining them with metadata in a single query
+ * risks HTTP 413 / service-protection limit responses.
+ */
 export class ClassicWorkflowDiscovery implements IDiscoverer<ClassicWorkflow> {
   private readonly client: IDataverseClient;
   private onProgress?: (current: number, total: number) => void;

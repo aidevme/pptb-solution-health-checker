@@ -2,9 +2,6 @@ import { version } from '../../../package.json';
 import type { BlueprintResult } from '../types/blueprint.js';
 import type { IReporter } from './IReporter.js';
 
-/**
- * Export wrapper for JSON blueprint export
- */
 interface JsonExportWrapper {
   exportVersion: string;
   exportedAt: string;
@@ -13,23 +10,20 @@ interface JsonExportWrapper {
 }
 
 /**
- * Exports blueprint as JSON with metadata wrapper
+ * Exports a {@link BlueprintResult} as a pretty-printed JSON string wrapped in version metadata.
  *
- * Use cases:
- * - Baseline comparison (next day)
- * - Programmatic consumption
- * - Data analysis
- * - CI/CD pipelines
- * - Version control (git diff friendly)
+ * @remarks
+ * Environment variable `currentValue` and `defaultValue` fields are intentionally omitted
+ * from the output and replaced with `hasCurrentValue`/`hasDefaultValue` boolean flags.
+ * This prevents secrets (connection strings, API keys) stored in environment variable
+ * current values from leaking into exported files.
+ *
+ * `Map` instances throughout the result are serialized to plain objects so the JSON is
+ * portable — `JSON.stringify` does not handle `Map` natively.
  */
 export class JsonReporter implements IReporter<string> {
   private readonly toolVersion = version;
 
-  /**
-   * Generate JSON export of blueprint
-   * @param result Complete blueprint result
-   * @returns JSON string (pretty-printed with 2-space indentation)
-   */
   generate(result: BlueprintResult): string {
     // Create export wrapper with metadata
     const exportWrapper: JsonExportWrapper = {
@@ -43,10 +37,6 @@ export class JsonReporter implements IReporter<string> {
     return JSON.stringify(exportWrapper, this.jsonReplacer, 2);
   }
 
-  /**
-   * Serialize BlueprintResult to plain object
-   * Handles Maps, Dates, and undefined values
-   */
   private serializeResult(result: BlueprintResult): Record<string, unknown> {
     return {
       metadata: {
@@ -102,9 +92,6 @@ export class JsonReporter implements IReporter<string> {
     };
   }
 
-  /**
-   * Convert Map to plain object for JSON serialization
-   */
   private mapToObject<T>(map: Map<string, T>): Record<string, T> {
     const obj: Record<string, T> = {};
     for (const [key, value] of map.entries()) {
@@ -113,12 +100,6 @@ export class JsonReporter implements IReporter<string> {
     return obj;
   }
 
-  /**
-   * Custom JSON replacer function
-   * - Converts undefined to null
-   * - Handles Date objects
-   * - Removes circular references
-   */
   private jsonReplacer(_key: string, value: unknown): unknown {
     // Convert undefined to null
     if (value === undefined) {

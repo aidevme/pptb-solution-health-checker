@@ -1,11 +1,22 @@
 /**
- * MarkdownReporter - Generates complete markdown documentation for blueprints
+ * Generates a multi-file Markdown export of a {@link BlueprintResult}.
  *
- * Generates a comprehensive file structure with:
- * - Root README with ERD and navigation
- * - Summary files (metrics, all-plugins, all-flows, etc.)
- * - Entity-specific documentation (overview, schema, automation, execution pipeline)
- * - Analysis files (complexity, performance risks, migration recommendations)
+ * @remarks
+ * Output is a {@link MarkdownExport} whose `files` map uses slash-separated virtual
+ * paths as keys (e.g. `entities/account/overview.md`). These paths are consumed by
+ * {@link ZipPackager}, which places them under a `markdown/` sub-folder in the ZIP.
+ * They are also suitable for direct upload to Azure DevOps Wiki or GitHub.
+ *
+ * Sparse file generation: per-entity files (`automation.md`, `execution-pipeline.md`,
+ * `business-process-flows.md`) are only emitted when the entity actually has content
+ * for them, keeping the output set clean. The same applies to optional summary files
+ * (`external-integrations.md`, `solution-distribution.md`, per-entity `cross-entity-trace`
+ * files).
+ *
+ * The ERD is produced as both a Mermaid code block in `README.md` and as a standalone
+ * `erd/erd.svg` generated with a Fruchterman-Reingold force-directed layout (120 iterations,
+ * simulated annealing cooling). Only nodes that participate in at least one relationship
+ * edge are rendered in the SVG.
  */
 import type {
   BlueprintResult,
@@ -44,9 +55,6 @@ import { calculateComplexityScore } from '../utils/complexity.js';
 import type { IReporter } from './IReporter.js';
 
 export class MarkdownReporter implements IReporter<MarkdownExport> {
-  /**
-   * Generate complete markdown export from blueprint result
-   */
   generate(result: BlueprintResult): MarkdownExport {
     const files = new Map<string, string>();
 

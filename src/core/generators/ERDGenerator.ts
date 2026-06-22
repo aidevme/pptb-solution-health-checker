@@ -4,15 +4,32 @@ import { getPublisherColors } from '../utils/ColorGenerator.js';
 import { isSystemEntity, isSystemRelationship, hasPlatformEntityCustomRelationship, isBPFEntity } from '../utils/systemFilters.js';
 
 /**
- * Generates Entity Relationship Diagrams (ERD) using Mermaid Class Diagram syntax
- * Class diagrams provide better layout control and cleaner hierarchical views
+ * Generates Entity Relationship Diagrams using Mermaid `classDiagram` syntax.
+ *
+ * @remarks
+ * Mermaid's `classDiagram` was chosen over `erDiagram` because it supports the
+ * `style` directive needed for publisher-based colour coding, and its layout
+ * engine handles large node counts more predictably than the ER renderer.
+ *
+ * Three entity categories are excluded from the diagram regardless of scope:
+ * 1. BPF tracking entities (e.g. `new_bpf_*`) — auto-generated, not designed
+ *    by developers; identified via the `bpfEntityNames` set passed by the caller.
+ * 2. System entities with no custom relationships — including them clutters the
+ *    diagram without adding information about the solution's data model.
+ * 3. Entities whose relationship attributes cannot be found in the attribute
+ *    list — these are phantom relationships from partial metadata and would
+ *    produce dangling arrows.
  */
 export class ERDGenerator {
   private readonly direction: 'TB' | 'LR' = 'TB'; // Top-to-bottom layout (configurable)
 
   /**
-   * Generate Mermaid Class Diagram ERD with publisher-based color coding
-   * Creates a single diagram containing all entities
+   * Produces an {@link ERDDefinition} containing a single Mermaid `classDiagram`,
+   * a publisher legend, entity quick-links, and interactive graph data.
+   *
+   * @param bpfEntityNames - Logical names of BPF tracking entities (lowercased).
+   *   Obtained from the BPF processor result; passed in rather than derived here
+   *   to avoid re-fetching metadata.
    */
   generateMermaidERD(entities: EntityBlueprint[], publishers: Publisher[], bpfEntityNames: ReadonlySet<string> = new Set()): ERDDefinition {
     // Filter out system entities (unless they have a custom relationship) and BPF tracking entities (always)
@@ -115,8 +132,21 @@ export class ERDGenerator {
 
 
   /**
-   * Generate Mermaid Class Diagram for a specific set of entities
-   * Uses class diagram syntax with namespace grouping for cleaner hierarchical layout
+   * Renders the Mermaid `classDiagram` source for a given entity set.
+   *
+   * @remarks
+   * Relationship lines are emitted **before** class definitions.  Mermaid's
+   * layout engine positions nodes with fewer edge crossings when edges are
+   * declared first — reversing this order visibly degrades layout quality on
+   * diagrams with more than ~20 entities.
+   *
+   * Each relationship is keyed as `parentEntity->childEntity:schemaName` before
+   * being added to `processedRelationships`; N:M relationships also check the
+   * reverse key to prevent the same intersect table from appearing twice.
+   *
+   * An attribute-existence guard skips any relationship whose referencing or
+   * referenced attribute is absent from the filtered entity metadata — this can
+   * happen when `excludeSystemFields` strips the FK column.
    */
   private generateClassDiagramForEntities(
     entities: EntityBlueprint[],
@@ -338,7 +368,15 @@ export class ERDGenerator {
   }
 
   /**
-   * Count total relationships across all entities
+   * Counts relationships for the summary statistic in {@link ERDDefinition}.
+   *
+   * @remarks
+   * This count is derived from raw entity metadata **before** the system-
+   * relationship filter and attribute-existence guard that
+   * `generateClassDiagramForEntities` applies, so it will be higher than the
+   * number of arrows actually rendered in the diagram.  The discrepancy is
+   * intentional: the summary reflects what exists in Dataverse, not what
+   * passed the diagram filters.
    */
   private countTotalRelationships(entities: EntityBlueprint[]): number {
     let count = 0;

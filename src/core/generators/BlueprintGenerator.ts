@@ -30,7 +30,12 @@ import type {
 } from '../types/blueprint.js';
 
 /**
- * Scope selection for blueprint generation
+ * Scope selection for blueprint generation.
+ *
+ * @remarks
+ * `solutionIds` must be non-empty when `type` is `'solution'` — the engine
+ * throws if neither is provided.  `'publisher'` scopes are not yet implemented
+ * and will also throw.
  */
 export interface ScopeSelection {
   type: 'publisher' | 'solution';
@@ -41,8 +46,20 @@ export interface ScopeSelection {
 }
 
 /**
- * Main orchestrator for generating Power Platform system blueprints
- * Uses discovery-first approach: discover what exists, then process only those components
+ * Main orchestrator for generating Power Platform system blueprints.
+ *
+ * @remarks
+ * The generation strategy is discover-first: component IDs are resolved up-front
+ * by the discovery layer, and processors then fetch detail only for those IDs.
+ * This avoids broad OData queries against large environments.
+ *
+ * Cancellation is cooperative: each processor and the entity-schema loop check
+ * `options.signal` between operations.  An aborted signal causes `generate()` to
+ * throw `"Blueprint generation cancelled"` — the caller is responsible for
+ * distinguishing this from a genuine error.
+ *
+ * Progress is reported via `options.onProgress` throughout.  The `phase` field
+ * lets the UI render a contextual label; `current`/`total` drive the progress bar.
  */
 export class BlueprintGenerator {
   private readonly client: IDataverseClient;
@@ -54,7 +71,18 @@ export class BlueprintGenerator {
   private logger: FetchLogger = new FetchLogger();
   private stepWarnings: StepWarning[] = [];
 
-  /** Scale tier based on entity count — controls concurrency and retry aggressiveness */
+  /**
+   * Returns concurrency and retry parameters scaled to the number of entities.
+   *
+   * @remarks
+   * Larger environments hit Dataverse service-protection limits faster, so
+   * concurrency is intentionally reduced and back-off delay increased as entity
+   * count grows.  The four tiers were calibrated against real customer tenants:
+   * - ≥500 entities: 2 concurrent / 2 s base delay
+   * - ≥200 entities: 3 concurrent / 1.5 s base delay
+   * - ≥50 entities: 4 concurrent / 1 s base delay
+   * - &lt;50 entities: 5 concurrent / 1 s base delay
+   */
   private getScaleTier(entityCount: number): { concurrency: number; initialBatchSize: number; maxAttempts: number; baseDelayMs: number } {
     if (entityCount >= 500) return { concurrency: 2, initialBatchSize: 8,  maxAttempts: 5, baseDelayMs: 2000 };
     if (entityCount >= 200) return { concurrency: 3, initialBatchSize: 10, maxAttempts: 5, baseDelayMs: 1500 };
@@ -69,7 +97,19 @@ export class BlueprintGenerator {
   }
 
   /**
-   * Generate complete blueprint for the selected scope
+   * Generates a complete blueprint for the configured scope.
+   *
+   * @remarks
+   * The pipeline runs in fixed order:
+   * 1. Component discovery (publisher + solution + entity IDs)
+   * 2. Entity schema fetch (concurrent, concurrency scaled by {@link getScaleTier})
+   * 3. All {@link GENERATOR_STEPS} (plugins → forms) run sequentially
+   * 4. ERD generation, cross-entity analysis, external-dependency aggregation,
+   *    and solution-distribution analysis
+   *
+   * Throws `"Blueprint generation cancelled"` if `options.signal` is aborted at
+   * any checkpoint.  All other errors are re-thrown as
+   * `"Blueprint generation failed: <message>"`.
    */
   async generate(): Promise<BlueprintResult> {
     const startTime = new Date();
@@ -379,7 +419,17 @@ export class BlueprintGenerator {
   }
 
   /**
-   * Discover all components in the selected scope
+   * Resolves all component IDs for the selected scope.
+   *
+   * @remarks
+   * When the selected solutions include the built-in `Default` solution,
+   * every entity in the environment is returned rather than filtering by the
+   * solution component list — the Default solution owns everything and its
+   * component list is not a reliable filter.
+   *
+   * The solution unique-name array is built in the same order as
+   * `this.scope.solutionIds` (not the order returned by the API) so that
+   * index-based alignment inside `discoverComponents` stays correct.
    */
   private async discoverComponents(): Promise<{
     inventory: ComponentInventoryWithSolutions;
@@ -432,7 +482,24 @@ export class BlueprintGenerator {
   }
 
   /**
-   * Process all entities - fetch detailed schema and filter attributes by solution
+   * Fetches full attribute metadata for each entity and filters it down to the
+   * solution's declared attributes.
+   *
+   * @remarks
+   * Custom entities (`IsCustomEntity === true`) always include all attributes
+   * because the solution component list does not enumerate individual attributes
+   * for custom entities — every column is implicitly owned.
+   *
+   * For system entities the attribute list is filtered to only those whose
+   * `MetadataId` appears in `attributeIds` (the solution's attribute component
+   * IDs), with GUID braces stripped and lowercased before comparison.
+   *
+   * Individual entity failures are swallowed: the entity is omitted from the
+   * result and a partial {@link StepWarning} is appended instead of aborting
+   * the whole run.
+   *
+   * @param concurrency - Maximum simultaneous schema fetches; caller derives
+   *   this from {@link getScaleTier} to respect service-protection limits.
    */
   private async processEntities(entities: EntityMetadata[], attributeIds: string[], concurrency = 5): Promise<EntityBlueprint[]> {
     const total = entities.length;

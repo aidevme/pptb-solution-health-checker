@@ -1,14 +1,14 @@
 import type { ExecutionPipeline, ExecutionStep, PerformanceRisk } from '../types/blueprint.js';
 
 /**
- * Analyzes execution pipelines for performance risks
+ * Inspects an {@link ExecutionPipeline} and flags heuristic performance risks.
+ *
+ * @remarks
+ * All thresholds (e.g. >5 client-side BRs = Medium, >3 sync steps per stage = Medium)
+ * are heuristic estimates, not hard Dataverse limits. The returned risks are sorted
+ * Critical → High → Medium → Low.
  */
 export class PerformanceAnalyzer {
-  /**
-   * Analyze execution pipeline for performance risks
-   * @param pipeline Execution pipeline to analyze
-   * @returns Array of detected performance risks
-   */
   analyzePerformanceRisks(pipeline: ExecutionPipeline): PerformanceRisk[] {
     const risks: PerformanceRisk[] = [];
 
@@ -27,9 +27,6 @@ export class PerformanceAnalyzer {
     return risks.sort((a, b) => this.getSeverityWeight(b.severity) - this.getSeverityWeight(a.severity));
   }
 
-  /**
-   * Analyze client-side execution risks
-   */
   private analyzeClientSideRisks(steps: ExecutionStep[], risks: PerformanceRisk[]): void {
     if (steps.length > 5) {
       risks.push({
@@ -50,9 +47,6 @@ export class PerformanceAnalyzer {
     }
   }
 
-  /**
-   * Analyze server-side synchronous execution risks
-   */
   private analyzeServerSideSyncRisks(
     serverSideSync: {
       preValidation: ExecutionStep[];
@@ -120,9 +114,6 @@ export class PerformanceAnalyzer {
     }
   }
 
-  /**
-   * Analyze async execution risks
-   */
   private analyzeAsyncRisks(steps: ExecutionStep[], risks: PerformanceRisk[]): void {
     // Check for excessive async steps
     if (steps.length > 10) {
@@ -155,9 +146,6 @@ export class PerformanceAnalyzer {
     }
   }
 
-  /**
-   * Analyze overall pipeline complexity
-   */
   private analyzeComplexityRisks(pipeline: ExecutionPipeline, risks: PerformanceRisk[]): void {
     const totalSyncSteps =
       pipeline.clientSide.length +
@@ -236,9 +224,6 @@ export class PerformanceAnalyzer {
     }
   }
 
-  /**
-   * Get numeric weight for severity (for sorting)
-   */
   private getSeverityWeight(severity: 'Critical' | 'High' | 'Medium' | 'Low'): number {
     switch (severity) {
       case 'Critical':
@@ -254,9 +239,6 @@ export class PerformanceAnalyzer {
     }
   }
 
-  /**
-   * Get summary statistics for performance analysis
-   */
   getSummaryStats(risks: PerformanceRisk[]): {
     critical: number;
     high: number;

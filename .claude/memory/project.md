@@ -6,13 +6,13 @@
 
 ## Project Identity
 
-- **Full name:** Power Platform Solution Blueprint (PPSB)
+- **Full name:** Power Platform Solution Solution Health Checker (PPSB)
 - **Tagline:** "Complete architectural blueprints for your Power Platform systems"
 - **Type:** PPTB Desktop tool (runs inside Power Platform Toolbox Desktop)
 - **License:** MIT, free and open-source
 - **Entry point:** `dist/index.html`
-- **Tool display name in PPTB:** "Power Platform Solution Blueprint (PPSB)"
-- **GitHub:** https://github.com/sabrish/power-platform-solution-blueprint
+- **Tool display name in PPTB:** "Power Platform Solution Health Checker (PPSB)"
+- **GitHub:** https://github.com/aidevme/pptb-solution-health-checker
 
 ---
 

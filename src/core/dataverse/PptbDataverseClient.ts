@@ -10,7 +10,15 @@ interface DataverseApi {
 }
 
 /**
- * Dataverse client implementation using PPTB Desktop API
+ * {@link IDataverseClient} implementation backed by the PPTB Desktop `queryData` API.
+ *
+ * @remarks
+ * All requests target the `'primary'` connection. Every call is wrapped with
+ * {@link withRetry} (3 attempts, default backoff) — transient 429 / service-protection
+ * errors are retried automatically before the error is surfaced to the caller.
+ *
+ * Authentication is handled entirely by the PPTB Desktop host; this class never
+ * manages tokens or credentials directly.
  */
 export class PptbDataverseClient implements IDataverseClient {
   private readonly dataverseApi: DataverseApi;
@@ -21,16 +29,10 @@ export class PptbDataverseClient implements IDataverseClient {
     this.environmentUrl = environmentUrl || 'Unknown Environment';
   }
 
-  /**
-   * Get the Dataverse environment URL
-   */
   getEnvironmentUrl(): string {
     return this.environmentUrl;
   }
 
-  /**
-   * Query a Dataverse entity set with OData options
-   */
   async query<T>(entitySet: string, options?: QueryOptions): Promise<QueryResult<T>> {
     try {
       const queryString = this.buildQueryString(options);
@@ -90,9 +92,6 @@ export class PptbDataverseClient implements IDataverseClient {
     return { value: allResults, count: firstPageCount };
   }
 
-  /**
-   * Query Dataverse metadata with OData options
-   */
   async queryMetadata<T>(metadataPath: string, options?: QueryOptions): Promise<QueryResult<T>> {
     try {
       const queryString = this.buildQueryString(options);
@@ -111,9 +110,6 @@ export class PptbDataverseClient implements IDataverseClient {
     }
   }
 
-  /**
-   * Build OData query string from options
-   */
   private buildQueryString(options?: QueryOptions): string {
     if (!options) {
       return '';
@@ -169,9 +165,6 @@ export class PptbDataverseClient implements IDataverseClient {
     throw new Error(`Cannot extract relative path from @odata.nextLink: ${nextLink}`);
   }
 
-  /**
-   * Parse response from PPTB API
-   */
   private parseResponse<T>(response: unknown): QueryResult<T> {
     if (!response || typeof response !== 'object') {
       throw new Error('Invalid response from Dataverse');

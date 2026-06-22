@@ -347,6 +347,12 @@ const appsStep: ProcessorStep = {
 
 /**
  * Forms and JavaScript Event Handlers — Step 7
+ *
+ * @remarks
+ * Passes `ctx.inventory.entitiesWithAllSubcomponents` to the processor so it
+ * can include every form for entities whose solution component entry carries
+ * `rootcomponentbehavior=0` (include all subcomponents), rather than only
+ * forms explicitly listed in the solution component table.
  */
 const formsStep: ProcessorStep = {
   name: 'Forms',

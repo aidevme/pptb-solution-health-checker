@@ -25,6 +25,11 @@ export interface FieldSecurityProfile {
 
 /**
  * Field Permission
+ *
+ * @remarks
+ * `canread`, `cancreate`, and `canupdate` are integers (0 = Not Allowed, 1 = Allowed),
+ * not booleans — the Dataverse `fieldpermissions` schema uses a PickList type here.
+ * Callers must compare with `=== 1` rather than using truthiness.
  */
 export interface FieldPermission {
   fieldpermissionid: string;
@@ -98,7 +103,16 @@ export class FieldSecurityProfileDiscovery {
   }
 
   /**
-   * Get field permissions for specific entities — batched to avoid HTTP 414
+   * Fetches `fieldpermissions` records for the given entities.
+   *
+   * @remarks
+   * `$expand=fieldsecurityprofileid($select=name)` is used to retrieve the profile name
+   * in a single round trip. The navigation property key (`fieldsecurityprofileid`) is the
+   * same identifier as the lookup field, which is counter-intuitive but correct for this
+   * entity. The expanded object is returned at `record.fieldsecurityprofileid.name`.
+   *
+   * Batched by entity name rather than record ID because `fieldpermissions` has no
+   * per-record ID filter that works without first knowing the profile ID.
    */
   async getFieldPermissions(entityLogicalNames: string[]): Promise<FieldPermission[]> {
     if (entityLogicalNames.length === 0) return [];

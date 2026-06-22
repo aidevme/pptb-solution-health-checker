@@ -1,13 +1,28 @@
 import type { BlueprintResult } from '../core';
 
 /**
- * Estimate export file sizes before generation
- * Provides user with preview of download size
+ * Pre-generation export size estimators shown in the `ExportDialog` before the
+ * user triggers a download.
+ *
+ * @remarks
+ * All three estimators trade accuracy for speed — they use flat per-item byte
+ * constants rather than serialising the full result. The constants were calibrated
+ * against real blueprint outputs and are intentionally conservative (they tend to
+ * over-estimate slightly). The one exception is ERD: both `estimateMarkdownSize`
+ * and `estimateJsonSize` measure the actual Mermaid diagram string lengths because
+ * ERD size varies too widely for a flat constant to be useful.
+ *
+ * @packageDocumentation
  */
 
 /**
- * Estimate total size of markdown export
- * @param result Blueprint result
+ * Estimates the total size of a markdown ZIP export in bytes.
+ *
+ * @remarks
+ * ERD size is measured from the actual Mermaid diagram strings rather than
+ * approximated, because diagram length varies widely with entity count.
+ *
+ * @param result - Completed blueprint result
  * @returns Estimated size in bytes
  */
 export function estimateMarkdownSize(result: BlueprintResult): number {
@@ -50,8 +65,14 @@ export function estimateMarkdownSize(result: BlueprintResult): number {
 }
 
 /**
- * Estimate JSON export size
- * @param result Blueprint result
+ * Estimates the total size of a JSON export in bytes.
+ *
+ * @remarks
+ * ERD size is measured via `JSON.stringify(result.erd).length` (actual data).
+ * Cross-entity analysis uses `Map.size` counts rather than serialising Maps,
+ * since `JSON.stringify` silently drops `Map` entries.
+ *
+ * @param result - Completed blueprint result
  * @returns Estimated size in bytes
  */
 export function estimateJsonSize(result: BlueprintResult): number {
@@ -116,8 +137,14 @@ export function estimateJsonSize(result: BlueprintResult): number {
 }
 
 /**
- * Estimate HTML export size
- * @param result Blueprint result
+ * Estimates the total size of a single-file HTML export in bytes.
+ *
+ * @remarks
+ * The `100 000`-byte base accounts for the embedded CSS, inline JavaScript,
+ * and the Mermaid CDN `<script>` tag. ERD size is estimated from the Mermaid
+ * diagram strings (same approach as `estimateMarkdownSize`).
+ *
+ * @param result - Completed blueprint result
  * @returns Estimated size in bytes
  */
 export function estimateHtmlSize(result: BlueprintResult): number {
@@ -151,9 +178,8 @@ export function estimateHtmlSize(result: BlueprintResult): number {
 }
 
 /**
- * Format bytes to human-readable string
- * @param bytes Size in bytes
- * @returns Formatted string (e.g., "1.2 MB", "450 KB")
+ * Converts a byte count to a human-readable string with one decimal place
+ * (e.g. `1 048 576` → `"1.0 MB"`).
  */
 export function formatBytes(bytes: number): string {
   if (bytes === 0) return '0 Bytes';

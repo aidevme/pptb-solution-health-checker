@@ -18,7 +18,14 @@ interface SolutionComponent {
 }
 
 /**
- * Discovers entities in the Power Platform environment
+ * Discovers entities in the Power Platform environment.
+ *
+ * @remarks
+ * The Dataverse metadata API (`/api/data/v9.x/EntityDefinitions`) does not support
+ * `$filter` on `MetadataId` or `IsManaged` in the same way the OData entity API does.
+ * Both `getEntitiesByIds` and `getAllEntities` therefore fetch all `EntityDefinitions`
+ * and filter the result set in memory. This is intentional — the alternative (individual
+ * per-ID requests) would be dramatically slower for large environments.
  */
 export class EntityDiscovery {
   private readonly client: IDataverseClient;
@@ -27,11 +34,6 @@ export class EntityDiscovery {
     this.client = client;
   }
 
-  /**
-   * Get entities by their metadata IDs
-   * @param entityIds Array of entity metadata IDs
-   * @returns Array of entity metadata
-   */
   async getEntitiesByIds(entityIds: string[]): Promise<EntityMetadata[]> {
     try {
       if (entityIds.length === 0) {
@@ -69,11 +71,6 @@ export class EntityDiscovery {
     }
   }
 
-  /**
-   * Get all entities from specified solutions
-   * @param solutionIds Array of solution IDs
-   * @returns Array of entities from the solutions (deduplicated)
-   */
   async getEntitiesBySolutions(solutionIds: string[]): Promise<EntityMetadata[]> {
     try {
       // Step 1: Get all entity components from the solutions
@@ -127,12 +124,6 @@ export class EntityDiscovery {
     }
   }
 
-  /**
-   * Get all entities in the environment
-   * @param includeSystem Whether to include system-owned entities
-   * @param onlyUnmanaged Only include unmanaged entities (for Default Solution)
-   * @returns Array of all entities
-   */
   async getAllEntities(includeSystem: boolean, onlyUnmanaged: boolean = false): Promise<EntityMetadata[]> {
     try {
       // Only use IsCustomEntity filter in the query - metadata API has limited query parameter support

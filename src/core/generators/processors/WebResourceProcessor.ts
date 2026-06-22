@@ -5,6 +5,16 @@ import { WebResourceDiscovery } from '../../discovery/WebResourceDiscovery.js';
 import type { IDiscoverer } from '../../discovery/IDiscoverer.js';
 import { checkForPartialFailures } from './processorUtils.js';
 
+/**
+ * Fetches web resource records and their content for the selected solutions.
+ *
+ * @remarks
+ * Discovery runs in two passes: the first retrieves the web resource metadata
+ * records; the second fetches the actual file content for JavaScript resources
+ * (needed for size analysis and dependency scanning).  The progress callback
+ * emits a distinct message for each pass — `current < total` indicates pass 1
+ * is still running, while `current === total` signals pass 2 (content fetch).
+ */
 export async function processWebResources(
   client: IDataverseClient,
   webResourceIds: string[],

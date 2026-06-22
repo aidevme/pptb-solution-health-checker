@@ -16,7 +16,9 @@ export interface CustomConnector {
   owner: string;
   modifiedOn: string;
   modifiedBy: string;
+  /** Raw JSON string of the connector's policy template; `undefined` when not present. */
   policy?: string;
+  /** Raw JSON string of the OpenAPI (Swagger) definition; `undefined` when not present. */
   apiDefinition?: string;
 }
 

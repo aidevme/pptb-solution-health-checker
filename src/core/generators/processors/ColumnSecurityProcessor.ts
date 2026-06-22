@@ -2,6 +2,19 @@ import type { IDataverseClient } from '../../dataverse/IDataverseClient.js';
 import type { ProgressInfo, StepWarning } from '../../types/blueprint.js';
 import { ColumnSecurityDiscovery, type AttributeMaskingRule, type ColumnSecurityProfile } from '../../discovery/ColumnSecurityDiscovery.js';
 
+/**
+ * Discovers attribute masking rules and column security profiles for the
+ * environment.
+ *
+ * @remarks
+ * Unlike most processors this fetch is **not scoped to the selected solutions**
+ * — column security is an environment-level configuration and there is no
+ * `solutioncomponents` entry to filter against.  The results therefore reflect
+ * the full environment, which may include rules outside the analysed solutions.
+ *
+ * Errors are caught and returned as a partial warning rather than thrown,
+ * consistent with the {@link ProcessorStep} no-throw contract.
+ */
 export async function processColumnSecurity(
   client: IDataverseClient,
   onProgress: (progress: ProgressInfo) => void,

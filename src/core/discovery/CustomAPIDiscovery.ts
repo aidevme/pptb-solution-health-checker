@@ -45,7 +45,17 @@ interface RawCustomAPIParameter {
 }
 
 /**
- * Discovers Custom APIs
+ * Discovers Custom APIs from `customapis`, `customapirequestparameters`, and
+ * `customapiresponseproperties`.
+ *
+ * @remarks
+ * Parameters and response properties are fetched in two separate batched queries
+ * (one per child entity) keyed on `_customapiid_value`, then grouped in memory.
+ * This avoids N+1 requests while respecting the fact that `$expand` on these
+ * child collections is not supported by the Dataverse OData endpoint.
+ *
+ * `isoptional` only exists on `customapirequestparameters` — it is absent from
+ * `customapiresponseproperties`, which always defaults to `false`.
  */
 export class CustomAPIDiscovery implements IDiscoverer<CustomAPI> {
   private readonly client: IDataverseClient;
@@ -58,11 +68,6 @@ export class CustomAPIDiscovery implements IDiscoverer<CustomAPI> {
     this.logger = logger;
   }
 
-  /**
-   * Get all Custom APIs in the solution
-   * @param customApiIds Array of custom API IDs from solution components
-   * @returns Array of Custom APIs with parameters
-   */
   discoverByIds(ids: string[]): Promise<CustomAPI[]> {
     return this.getCustomAPIsByIds(ids);
   }
@@ -200,9 +205,6 @@ export class CustomAPIDiscovery implements IDiscoverer<CustomAPI> {
     }
   }
 
-  /**
-   * Map raw data to CustomAPI
-   */
   private mapToCustomAPI(
     raw: RawCustomAPI,
     requestParameters: CustomAPIParameter[],
@@ -232,9 +234,6 @@ export class CustomAPIDiscovery implements IDiscoverer<CustomAPI> {
     };
   }
 
-  /**
-   * Map raw parameter to CustomAPIParameter
-   */
   private mapToParameter(raw: RawCustomAPIParameter, isRequest: boolean): CustomAPIParameter {
     return {
       id: (isRequest ? raw.customapirequestparameterid : raw.customapiresponsepropertyid) || '',
@@ -248,9 +247,6 @@ export class CustomAPIDiscovery implements IDiscoverer<CustomAPI> {
     };
   }
 
-  /**
-   * Get binding type name
-   */
   private getBindingType(bindingType: number): 'Global' | 'Entity' | 'EntityCollection' {
     switch (bindingType) {
       case 0:
@@ -264,9 +260,6 @@ export class CustomAPIDiscovery implements IDiscoverer<CustomAPI> {
     }
   }
 
-  /**
-   * Get allowed custom processing step type
-   */
   private getAllowedStepType(type: number): 'None' | 'AsyncOnly' | 'SyncAndAsync' {
     switch (type) {
       case 0:
@@ -280,9 +273,6 @@ export class CustomAPIDiscovery implements IDiscoverer<CustomAPI> {
     }
   }
 
-  /**
-   * Get execution privilege
-   */
   private getExecutionPrivilege(
     privilegeName: string | null
   ): 'None' | 'Basic' | 'Local' | 'Deep' | 'Global' {
@@ -297,9 +287,6 @@ export class CustomAPIDiscovery implements IDiscoverer<CustomAPI> {
     return 'None';
   }
 
-  /**
-   * Get parameter type
-   */
   private getParameterType(type: number):
     | 'Boolean'
     | 'DateTime'
@@ -346,9 +333,6 @@ export class CustomAPIDiscovery implements IDiscoverer<CustomAPI> {
     }
   }
 
-  /**
-   * Get parameter type name
-   */
   private getParameterTypeName(type: number): string {
     const typeMap = this.getParameterType(type);
     return typeMap;

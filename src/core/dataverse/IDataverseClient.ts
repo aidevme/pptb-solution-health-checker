@@ -22,7 +22,16 @@ export interface QueryResult<T> {
 }
 
 /**
- * Interface for Dataverse client operations
+ * Abstraction over the Dataverse OData API used by all discovery and generator classes.
+ *
+ * @remarks
+ * Two pagination contracts exist on purpose:
+ * - {@link IDataverseClient.query} — single page, caller owns pagination.
+ * - {@link IDataverseClient.queryAll} — follows `@odata.nextLink` automatically.
+ *
+ * `$skip`-based pagination is deliberately absent. Several Dataverse entity types
+ * (e.g. `customapis`) reject `$skip` with error `0x80060888`. Cursor-based paging
+ * via `@odata.nextLink` / `$skiptoken` is the only safe cross-entity approach.
  */
 export interface IDataverseClient {
   /**
@@ -41,16 +50,18 @@ export interface IDataverseClient {
   queryAll<T>(entitySet: string, options?: Omit<QueryOptions, 'top'>): Promise<QueryResult<T>>;
 
   /**
-   * Query Dataverse metadata (e.g., EntityDefinitions)
-   * @param metadataPath The metadata path (e.g., 'EntityDefinitions')
-   * @param options Query options (select, filter, expand, orderBy)
-   * @returns Query result with array of metadata objects
+   * Queries the Dataverse metadata API (`/api/data/vN.N/<metadataPath>`).
+   *
+   * @remarks
+   * Metadata endpoints use the same OData syntax as entity sets but are served
+   * from a different URL segment. Pass `'EntityDefinitions'`,
+   * `'EntityDefinitions(<id>)/Attributes'`, etc. as `metadataPath`.
    */
   queryMetadata<T>(metadataPath: string, options?: QueryOptions): Promise<QueryResult<T>>;
 
   /**
-   * Get the Dataverse environment URL
-   * @returns The environment URL or a default string if not available
+   * @returns The Dataverse environment URL, or `'Unknown Environment'` if the URL was
+   * not supplied at construction time.
    */
   getEnvironmentUrl(): string;
 }

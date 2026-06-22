@@ -55,8 +55,12 @@ export interface RetryOptions {
 /**
  * Runs `fn` with exponential-backoff retry on transient errors.
  *
- * Delays include ±25 % random jitter to avoid thundering-herd retry storms.
- * Base delays (default): 1 s → 2 s → 4 s (attempt 1, 2, 3 of 4 total).
+ * @remarks
+ * Delay formula: `baseDelayMs × 2^(attempt-1)` with ±25 % random jitter.
+ * Default schedule (4 attempts, 1 s base): ~1 s → ~2 s → ~4 s before the final throw.
+ * Non-transient errors (e.g. 400, 401, 403, 404) bypass all retries and are re-thrown
+ * immediately — `shouldRetry` returning `false` is treated as fatal.
+ * If `signal` is aborted before a retry delay completes, throws `new Error('Aborted')`.
  */
 export async function withRetry<T>(fn: () => Promise<T>, options: RetryOptions = {}): Promise<T> {
   const {

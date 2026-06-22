@@ -1,7 +1,13 @@
 import type { EntityBlueprint, BlueprintResult } from '../types/blueprint.js';
 
 /**
- * Calculate complexity score for an entity based on automation and schema density.
+ * Scores entity complexity from automation density and schema size.
+ *
+ * @remarks
+ * Weighted point formula: attributes × 1 + plugins × 5 + flows × 3 + businessRules × 2 + forms × 2.
+ * Thresholds: Low ≤ 50, Medium ≤ 150, High > 150.
+ * Plugins carry the highest weight because synchronous plugin chains are the primary
+ * source of platform-side execution risk.
  */
 export function calculateComplexityScore(entity: EntityBlueprint, _result: BlueprintResult): {
   total: number;

@@ -42,6 +42,14 @@ export interface FetchSummary {
   totalDurationMs: number;
 }
 
+/**
+ * Append-only log of every batched Dataverse API call made during a blueprint generation run.
+ *
+ * @remarks
+ * Errors thrown by live subscribers are swallowed so a misbehaving UI listener cannot
+ * crash the generator. Call {@link FetchLogger.getEntries} after generation completes to
+ * retrieve the full log for the diagnostics view.
+ */
 export class FetchLogger {
   private entries: FetchLogEntry[] = [];
   private counter = 0;

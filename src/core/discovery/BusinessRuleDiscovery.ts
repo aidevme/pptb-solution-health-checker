@@ -25,7 +25,12 @@ interface BusinessRuleRecord {
 }
 
 /**
- * Discovers Business Rules (client/server-side logic)
+ * Discovers Business Rules from the `workflows` entity (category=2).
+ *
+ * @remarks
+ * The `workflows` OData entity does not support `$orderby` — including it causes the
+ * API to return an empty result set silently rather than raising an error. Sorting is
+ * therefore performed in memory after each fetch.
  */
 export class BusinessRuleDiscovery implements IDiscoverer<BusinessRule> {
   private readonly client: IDataverseClient;
@@ -42,9 +47,6 @@ export class BusinessRuleDiscovery implements IDiscoverer<BusinessRule> {
     this.logger = logger;
   }
 
-  /**
-   * Get business rules by workflow IDs
-   */
   discoverByIds(ids: string[]): Promise<BusinessRule[]> {
     return this.getBusinessRulesByIds(ids);
   }
@@ -86,9 +88,6 @@ export class BusinessRuleDiscovery implements IDiscoverer<BusinessRule> {
     return allResults.map(record => this.mapRecordToBusinessRule(record));
   }
 
-  /**
-   * Get all business rules for a specific entity
-   */
   async getBusinessRulesForEntity(logicalName: string): Promise<BusinessRule[]> {
     if (!/^[a-z][a-z0-9_]*$/.test(logicalName)) {
       throw new TypeError(`Invalid entity logical name: ${logicalName}`);
@@ -111,9 +110,6 @@ export class BusinessRuleDiscovery implements IDiscoverer<BusinessRule> {
     }
   }
 
-  /**
-   * Map workflow record to BusinessRule object
-   */
   private mapRecordToBusinessRule(record: BusinessRuleRecord): BusinessRule {
     // Parse business rule definition — tries clientdata first, falls back to XAML
     const definition = BusinessRuleParser.parse(record.xaml ?? null, record.clientdata ?? null, record.name);

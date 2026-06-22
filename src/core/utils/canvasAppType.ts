@@ -12,6 +12,7 @@ export const CANVAS_APP_TYPE_LABELS: Record<number, string> = {
   [CANVAS_APP_TYPE_CUSTOM_PAGE]: 'Custom Page',
 };
 
+/** Returns `'Canvas App'` for any unrecognised `canvasapptype` value — new Dataverse types are treated as standard apps. */
 export function getCanvasAppTypeLabel(appType: number): string {
   return CANVAS_APP_TYPE_LABELS[appType] ?? 'Canvas App';
 }

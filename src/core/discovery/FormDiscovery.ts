@@ -16,6 +16,17 @@ interface RawFormXml {
   formxml: string;
 }
 
+/**
+ * Discovers model-driven app forms from the `systemforms` entity set.
+ *
+ * @remarks
+ * Only the following form types are fetched: 2 (Main), 7 (Quick Create), 8 (Quick View),
+ * and 11 (Card). Types such as 0 (Dashboard), 5 (Mobile Express), and 6 (AppointmentBook)
+ * are intentionally excluded because the health checker rules do not apply to them.
+ *
+ * `formxml` is excluded from the metadata pass and fetched separately in a second pass
+ * with `initialBatchSize=5`; a complex form's XML can reach 100–500 KB.
+ */
 export class FormDiscovery {
   private readonly client: IDataverseClient;
   private logger?: FetchLogger;

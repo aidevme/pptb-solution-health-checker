@@ -12,8 +12,14 @@ export interface EnvironmentVariable {
   description: string | null;
   type: EnvironmentVariableType;
   typeName: string;
+  /** Fallback value defined on the definition record; used when no environment-specific `currentValue` exists. */
   defaultValue: string | null;
+  /**
+   * Environment-specific override stored on the separate `environmentvariablevalue` entity.
+   * `null` when no value has been set for this environment (the `defaultValue` applies at runtime).
+   */
   currentValue: string | null;
+  /** GUID of the `environmentvariablevalue` record; `null` when `currentValue` is null. */
   currentValueId: string | null;
   isManaged: boolean;
   isRequired: boolean;
@@ -43,7 +49,11 @@ export interface EnvironmentVariableValue {
 }
 
 /**
- * Environment Variable types
+ * Environment variable data types.
+ *
+ * @remarks
+ * `DataSource` is a special type that stores a connector data source reference
+ * (e.g. a Dataverse environment URL). Its value is stored as a JSON blob, not plain text.
  */
 export type EnvironmentVariableType = 'String' | 'Number' | 'Boolean' | 'JSON' | 'DataSource';
 

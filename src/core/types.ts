@@ -1,6 +1,12 @@
 /**
- * Represents a Power Platform Publisher
+ * Root-level primitive types shared across the entire `core/` layer.
+ *
+ * @remarks
+ * Domain-specific types (flows, BPFs, canvas apps, etc.) live in `./types/` sub-modules
+ * and are re-exported through `./index.ts`. Only the universal primitives that cut across
+ * multiple sub-modules belong here.
  */
+
 export interface Publisher {
   publisherid: string;
   uniquename: string;
@@ -8,9 +14,6 @@ export interface Publisher {
   customizationprefix: string;
 }
 
-/**
- * Represents a Power Platform Solution
- */
 export interface Solution {
   solutionid: string;
   uniquename: string;
@@ -23,9 +26,6 @@ export interface Solution {
   };
 }
 
-/**
- * Represents Dataverse Entity Metadata
- */
 export interface EntityMetadata {
   LogicalName: string;
   SchemaName: string;
@@ -50,9 +50,6 @@ export interface EntityMetadata {
   };
 }
 
-/**
- * Represents a plugin step image (pre or post)
- */
 export interface ImageDefinition {
   id: string;
   name: string;
@@ -62,7 +59,14 @@ export interface ImageDefinition {
 }
 
 /**
- * Represents a complete plugin step with all metadata
+ * A registered SDK message processing step (plugin step).
+ *
+ * @remarks
+ * `stage` follows the Dataverse plugin pipeline numbering:
+ * 10 = PreValidation, 20 = PreOperation, 40 = PostOperation (sync), 50 = PostOperation (async).
+ *
+ * `mode` is the Dataverse execution mode integer: 0 = Synchronous, 1 = Asynchronous.
+ * Stage 50 is always async regardless of `mode`.
  */
 export interface PluginStep {
   id: string;

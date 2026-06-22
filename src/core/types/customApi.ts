@@ -12,7 +12,8 @@ export interface CustomAPI {
   description: string | null;
   bindingType: 'Global' | 'Entity' | 'EntityCollection';
   boundEntityLogicalName: string | null;
-  isFunction: boolean; // true = Function, false = Action
+  /** `true` = OData Function (read-only, GET); `false` = OData Action (side-effects allowed, POST). */
+  isFunction: boolean;
   isPrivate: boolean;
   isManaged: boolean;
   allowedCustomProcessingStepType: 'None' | 'AsyncOnly' | 'SyncAndAsync';
@@ -37,7 +38,8 @@ export interface CustomAPIParameter {
   type: CustomAPIParameterType;
   typeName: string;
   isOptional: boolean;
-  logicalEntityName: string | null; // For EntityReference types
+  /** Target entity logical name when `type` is `EntityReference` or `Entity`; `null` for all other types. */
+  logicalEntityName: string | null;
 }
 
 /**

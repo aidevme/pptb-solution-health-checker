@@ -27,8 +27,16 @@ import { resolveEntityName } from '../utils/entityName.js';
  */
 export class CrossEntityAnalyzer {
   /**
-   * Analyze all entity blueprints and classic workflows to produce a
-   * complete cross-entity trace result.
+   * Produces a complete cross-entity trace result from pre-fetched blueprint data.
+   *
+   * @remarks
+   * Performs no Dataverse queries — all input must already be resolved. `allFlows` should
+   * contain every flow in scope, including those not attached to any entity blueprint
+   * (scheduled, manual, solution-level). Flows missing from `allFlows` will not appear in
+   * cross-entity chain links or unscoped entry points.
+   *
+   * @param classicWorkflows - Classic workflow records including their raw XAML. Steps are
+   * extracted via {@link ClassicWorkflowXamlParser}; workflows with empty XAML are skipped.
    */
   analyze(
     blueprints: EntityBlueprint[],
@@ -1103,7 +1111,12 @@ export class CrossEntityAnalyzer {
   }
 
   /**
-   * Check if plugin message matches entry point operation
+   * @remarks
+   * `'Action'` operations are intentionally unmatched: the SDK message name for a bound
+   * custom action is the action's unique name, not the string `'action'`. Resolving the
+   * correct message name would require a Dataverse lookup at analysis time. The
+   * TracePipeline UI surfaces an informational note so users know plugins registered on
+   * the action's message may also fire.
    */
   private messageMatchesOperation(message: string, operation: string): boolean {
     const msg = message.toLowerCase();
@@ -1111,11 +1124,6 @@ export class CrossEntityAnalyzer {
     if (op === 'create') return msg === 'create';
     if (op === 'update') return msg === 'update';
     if (op === 'delete') return msg === 'delete';
-    // 'Action' (bound custom actions) is intentionally not mapped here: the SDK message
-    // name for a custom action is the action's unique name, not 'action'. Matching it
-    // would require knowing each action's message name at analysis time. The TracePipeline
-    // UI surfaces an informational note to alert users that plugins on the action's
-    // message may also fire.
     return false;
   }
 

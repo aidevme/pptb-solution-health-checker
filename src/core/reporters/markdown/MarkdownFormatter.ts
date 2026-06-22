@@ -1,28 +1,12 @@
-/**
- * Markdown formatting utility class for PPSB
- * Provides static helper methods for generating markdown content
- */
+/** Static helpers for producing CommonMark-compatible Markdown content. */
 import type { FileNode } from '../../types/blueprint.js';
 
 export class MarkdownFormatter {
   /**
-   * Generate a markdown table with proper alignment
-   * @param headers - Table header labels
-   * @param rows - Array of row data (each row is an array of cell values)
-   * @param alignment - Optional alignment for each column ('left' | 'center' | 'right'), defaults to 'left'
-   * @returns Formatted markdown table string
+   * Pipe characters (`|`) inside cell content are escaped to `\|` to prevent them
+   * from being interpreted as column separators.
    *
-   * @example
-   * ```typescript
-   * const table = MarkdownFormatter.formatTable(
-   *   ['Name', 'Type', 'Required'],
-   *   [
-   *     ['id', 'String', 'Yes'],
-   *     ['name', 'String', 'No']
-   *   ],
-   *   ['left', 'center', 'right']
-   * );
-   * ```
+   * @param alignment - Per-column alignment; defaults to `'left'` for all columns.
    */
   static formatTable(
     headers: string[],
@@ -65,18 +49,6 @@ export class MarkdownFormatter {
     return [headerRow, separatorRow, ...dataRows].join('\n');
   }
 
-  /**
-   * Format a badge with emoji/symbol based on type
-   * @param text - Badge text
-   * @param type - Badge type (success, warning, error, info)
-   * @returns Formatted badge string
-   *
-   * @example
-   * ```typescript
-   * MarkdownFormatter.formatBadge('Active', 'success'); // ✅ Active
-   * MarkdownFormatter.formatBadge('Warning', 'warning'); // ⚠️ Warning
-   * ```
-   */
   static formatBadge(text: string, type: 'success' | 'warning' | 'error' | 'info'): string {
     const icons = {
       success: '✅',
@@ -88,57 +60,14 @@ export class MarkdownFormatter {
     return `${icons[type]} ${text}`;
   }
 
-  /**
-   * Format a markdown link
-   * @param text - Link display text
-   * @param url - Link URL
-   * @returns Formatted markdown link
-   *
-   * @example
-   * ```typescript
-   * MarkdownFormatter.formatLink('Google', 'https://google.com'); // [Google](https://google.com)
-   * ```
-   */
   static formatLink(text: string, url: string): string {
     return `[${text}](${url})`;
   }
 
-  /**
-   * Format a code block with language syntax highlighting
-   * @param code - Code content
-   * @param language - Programming language identifier
-   * @returns Formatted fenced code block
-   *
-   * @example
-   * ```typescript
-   * MarkdownFormatter.formatCodeBlock('console.log("hello");', 'javascript');
-   * // Returns:
-   * // ```javascript
-   * // console.log("hello");
-   * // ```
-   * ```
-   */
   static formatCodeBlock(code: string, language: string): string {
     return `\`\`\`${language}\n${code}\n\`\`\``;
   }
 
-  /**
-   * Format a markdown list (ordered or unordered)
-   * @param items - List items
-   * @param ordered - Whether to create an ordered list (default: false)
-   * @returns Formatted markdown list
-   *
-   * @example
-   * ```typescript
-   * MarkdownFormatter.formatList(['Apple', 'Banana'], false);
-   * // - Apple
-   * // - Banana
-   *
-   * MarkdownFormatter.formatList(['First', 'Second'], true);
-   * // 1. First
-   * // 2. Second
-   * ```
-   */
   static formatList(items: string[], ordered: boolean = false): string {
     if (items.length === 0) {
       return '';
@@ -151,46 +80,25 @@ export class MarkdownFormatter {
     }
   }
 
-  /**
-   * Format a markdown heading
-   * @param text - Heading text
-   * @param level - Heading level (1-6), will be clamped to this range
-   * @returns Formatted markdown heading
-   *
-   * @example
-   * ```typescript
-   * MarkdownFormatter.formatHeading('Title', 1); // # Title
-   * MarkdownFormatter.formatHeading('Subtitle', 2); // ## Subtitle
-   * ```
-   */
+  /** @param level - Clamped to the range [1, 6]. */
   static formatHeading(text: string, level: number): string {
     const clampedLevel = Math.max(1, Math.min(6, level));
     const hashes = '#'.repeat(clampedLevel);
     return `${hashes} ${text}`;
   }
 
-  /**
-   * Format a horizontal rule
-   * @returns Markdown horizontal rule
-   *
-   * @example
-   * ```typescript
-   * MarkdownFormatter.formatHorizontalRule(); // ---
-   * ```
-   */
   static formatHorizontalRule(): string {
     return '---';
   }
 
   /**
-   * Escape special markdown characters in user content
-   * @param text - Text to escape
-   * @returns Escaped text safe for markdown
+   * Escapes CommonMark special characters so that user-supplied strings render as
+   * literal text rather than markup.
    *
-   * @example
-   * ```typescript
-   * MarkdownFormatter.escapeMarkdown('Hello *world*'); // Hello \\*world\\*
-   * ```
+   * @remarks
+   * Backtick (`` ` ``) is intentionally **not** escaped — it is safe as a cell value
+   * in GFM tables and the callers in this codebase use it for inline code formatting.
+   * If you need to escape backticks for other contexts, do so at the call site.
    */
   static escapeMarkdown(text: string): string {
     if (!text) {
@@ -202,48 +110,10 @@ export class MarkdownFormatter {
     return text.replace(specialChars, '\\$1');
   }
 
-  /**
-   * Generate ASCII file tree representation
-   * @param node - Root file node
-   * @returns Formatted file tree string
-   *
-   * @example
-   * ```typescript
-   * const tree: FileNode = {
-   *   name: 'blueprint',
-   *   type: 'directory',
-   *   path: 'blueprint',
-   *   children: [
-   *     { name: 'README.md', type: 'file', path: 'blueprint/README.md' },
-   *     {
-   *       name: 'entities',
-   *       type: 'directory',
-   *       path: 'blueprint/entities',
-   *       children: [
-   *         { name: 'account.md', type: 'file', path: 'blueprint/entities/account.md' }
-   *       ]
-   *     }
-   *   ]
-   * };
-   * MarkdownFormatter.formatFileTree(tree);
-   * // blueprint/
-   * // ├── README.md
-   * // └── entities/
-   * //     └── account.md
-   * ```
-   */
   static formatFileTree(node: FileNode): string {
     return this.formatFileTreeRecursive(node, '', true, true);
   }
 
-  /**
-   * Helper method for recursive file tree formatting
-   * @param node - Current file node
-   * @param prefix - Current prefix for indentation
-   * @param isLast - Whether this node is the last sibling
-   * @param isRoot - Whether this is the root node
-   * @returns Formatted file tree string
-   */
   private static formatFileTreeRecursive(
     node: FileNode,
     prefix: string,

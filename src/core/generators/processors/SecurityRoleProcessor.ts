@@ -4,6 +4,18 @@ import type { ProgressInfo, StepWarning } from '../../types/blueprint.js';
 import { SecurityRoleDiscovery, type SecurityRoleDetail } from '../../discovery/SecurityRoleDiscovery.js';
 import { checkForPartialFailures } from './processorUtils.js';
 
+/**
+ * Fetches security roles in the selected solutions and resolves their full
+ * privilege detail.
+ *
+ * @remarks
+ * Role privilege resolution requires two network passes: the first fetches
+ * the `roleprivilegescollection` navigation property for each role to get
+ * privilege IDs; the second fetches the `privilege` entity set to resolve
+ * privilege names and access levels.  Both passes are handled by
+ * {@link SecurityRoleDiscovery.getRoleDetailsForRoles}, which batches requests
+ * to stay within OData URL-length limits.
+ */
 export async function processSecurityRoles(
   client: IDataverseClient,
   securityRoleIds: string[],

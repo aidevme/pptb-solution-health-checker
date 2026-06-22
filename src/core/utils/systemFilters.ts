@@ -1,6 +1,15 @@
 /**
- * System entity and relationship filters
- * Shared utility to ensure consistent filtering across ERD, dbdiagram exports, and UI views
+ * Predicates for filtering Dataverse platform/infrastructure entities and relationships.
+ *
+ * @remarks
+ * Used by the ERD generator, dbdiagram exporter, and UI views to suppress noise from
+ * platform-managed entities. A system entity is suppressed unless a user-defined
+ * (`IsCustomRelationship === true`) relationship links it to a scoped entity —
+ * in that case {@link hasPlatformEntityCustomRelationship} acts as an override gate.
+ *
+ * Intentionally NOT included in the system-entity list: `customapi`,
+ * `customapirequestparameter`, `customapiresponseproperty` — these are user-authored
+ * solution components, not platform infrastructure.
  */
 import type { EntityBlueprint } from '../types/blueprint.js';
 

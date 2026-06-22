@@ -6,6 +6,15 @@ import { WorkflowMigrationAnalyzer } from '../../analyzers/WorkflowMigrationAnal
 import type { ClassicWorkflow } from '../../types/classicWorkflow.js';
 import { checkForPartialFailures } from './processorUtils.js';
 
+/**
+ * Fetches classic (background) workflows and annotates each one with a
+ * migration recommendation produced by {@link WorkflowMigrationAnalyzer}.
+ *
+ * @remarks
+ * The migration analysis is performed inline here rather than in the discovery
+ * layer so that the discovery layer stays a pure data-fetcher.
+ * `workflow.migrationRecommendation` is `undefined` until this processor runs.
+ */
 export async function processClassicWorkflows(
   client: IDataverseClient,
   workflowIds: string[],

@@ -1,14 +1,18 @@
 import type { ClassicWorkflow, MigrationRecommendation, MigrationFeature } from '../types/classicWorkflow.js';
 
 /**
- * Analyzes classic workflows for migration complexity
+ * Produces a migration recommendation for a classic (background or real-time) workflow.
+ *
+ * @remarks
+ * Real-time workflows (`mode === 1`) are classified as `High` or `Critical` complexity
+ * and receive an advisory noting they cannot be faithfully migrated to Power Automate
+ * cloud flows, because cloud flows are always asynchronous and cannot block a user
+ * transaction the way a real-time workflow can.
+ *
+ * Feature detection is XAML string-match based — it looks for known XML element names
+ * and will miss custom activity types that use unusual namespaces or class names.
  */
 export class WorkflowMigrationAnalyzer {
-  /**
-   * Analyze classic workflow and provide migration recommendation
-   * @param workflow Classic workflow to analyze
-   * @returns Migration recommendation
-   */
   analyze(workflow: ClassicWorkflow): MigrationRecommendation {
     const features = this.detectFeatures(workflow.xaml);
     const complexity = this.calculateComplexity(features, workflow);
@@ -28,9 +32,6 @@ export class WorkflowMigrationAnalyzer {
     };
   }
 
-  /**
-   * Detect features in XAML
-   */
   private detectFeatures(xaml: string): MigrationFeature[] {
     const features: MigrationFeature[] = [];
 
@@ -145,9 +146,6 @@ export class WorkflowMigrationAnalyzer {
     return features;
   }
 
-  /**
-   * Calculate migration complexity
-   */
   private calculateComplexity(
     features: MigrationFeature[],
     workflow: ClassicWorkflow
@@ -181,9 +179,6 @@ export class WorkflowMigrationAnalyzer {
     return 'Low';
   }
 
-  /**
-   * Estimate migration effort
-   */
   private estimateEffort(complexity: string): string {
     switch (complexity) {
       case 'Critical':
@@ -198,9 +193,6 @@ export class WorkflowMigrationAnalyzer {
     }
   }
 
-  /**
-   * Generate migration approach
-   */
   private generateApproach(workflow: ClassicWorkflow, features: MigrationFeature[]): string {
     const steps: string[] = [];
 
@@ -225,9 +217,6 @@ export class WorkflowMigrationAnalyzer {
     return steps.join('\n');
   }
 
-  /**
-   * Get trigger description
-   */
   private getTriggerDescription(workflow: ClassicWorkflow): string {
     const triggers: string[] = [];
     if (workflow.triggerOnCreate) triggers.push('added');
@@ -236,9 +225,6 @@ export class WorkflowMigrationAnalyzer {
     return triggers.join(', ');
   }
 
-  /**
-   * Identify migration challenges
-   */
   private identifyChallenges(features: MigrationFeature[]): string[] {
     const challenges: string[] = [];
 
@@ -265,9 +251,6 @@ export class WorkflowMigrationAnalyzer {
     return challenges;
   }
 
-  /**
-   * Generate migration advisory based on workflow mode
-   */
   private generateAdvisory(workflow: ClassicWorkflow): string {
     // Real-time (synchronous) workflows - mode 1
     if (workflow.mode === 1 || workflow.modeName === 'RealTime') {

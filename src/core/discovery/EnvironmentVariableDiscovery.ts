@@ -43,7 +43,22 @@ interface RawEnvironmentVariableValue {
 }
 
 /**
- * Discovers Environment Variables
+ * Discovers Environment Variables from `environmentvariabledefinitions` and their
+ * runtime values from `environmentvariablevalues`.
+ *
+ * @remarks
+ * The `type` field uses option-set values in the 100000000+ range rather than the
+ * conventional 0-based integers: 100000000=String, 100000001=Number, 100000002=Boolean,
+ * 100000003=JSON, 100000004=DataSource. These are fixed Dataverse platform codes.
+ *
+ * Values are fetched in a second pass batched by definition ID. Multiple value records
+ * can exist per definition (e.g. when deployed to multiple environments or when the
+ * value has been overridden). The most recent value by `createdon` is surfaced as
+ * `currentValue`; all values are preserved in the `values` array.
+ *
+ * Progress reporting uses `envVarIds.length` as the stable denominator for both passes
+ * to prevent the progress bar from exceeding 100 % when the value count diverges from
+ * the definition count.
  */
 export class EnvironmentVariableDiscovery implements IDiscoverer<EnvironmentVariable> {
   private readonly client: IDataverseClient;
@@ -60,11 +75,6 @@ export class EnvironmentVariableDiscovery implements IDiscoverer<EnvironmentVari
     this.logger = logger;
   }
 
-  /**
-   * Get all Environment Variables in the solution
-   * @param envVarIds Array of environment variable definition IDs from solution components
-   * @returns Array of Environment Variables with their values
-   */
   discoverByIds(ids: string[]): Promise<EnvironmentVariable[]> {
     return this.getEnvironmentVariablesByIds(ids);
   }
@@ -165,9 +175,6 @@ export class EnvironmentVariableDiscovery implements IDiscoverer<EnvironmentVari
     }
   }
 
-  /**
-   * Map raw data to EnvironmentVariable
-   */
   private mapToEnvironmentVariable(
     raw: RawEnvironmentVariableDefinition,
     values: EnvironmentVariableValue[],
@@ -196,9 +203,6 @@ export class EnvironmentVariableDiscovery implements IDiscoverer<EnvironmentVari
     };
   }
 
-  /**
-   * Map raw value to EnvironmentVariableValue
-   */
   private mapToEnvironmentVariableValue(
     raw: RawEnvironmentVariableValue
   ): EnvironmentVariableValue {
@@ -215,9 +219,6 @@ export class EnvironmentVariableDiscovery implements IDiscoverer<EnvironmentVari
     };
   }
 
-  /**
-   * Get environment variable type
-   */
   private getType(type: number): 'String' | 'Number' | 'Boolean' | 'JSON' | 'DataSource' {
     switch (type) {
       case 100000000: return 'String';
@@ -229,9 +230,6 @@ export class EnvironmentVariableDiscovery implements IDiscoverer<EnvironmentVari
     }
   }
 
-  /**
-   * Get environment variable type name
-   */
   private getTypeName(type: number): string {
     return this.getType(type);
   }

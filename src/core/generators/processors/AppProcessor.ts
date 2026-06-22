@@ -6,6 +6,20 @@ import type { CanvasApp } from '../../types/canvasApp.js';
 import type { CustomPage } from '../../types/customPage.js';
 import type { ModelDrivenApp } from '../../types/modelDrivenApp.js';
 
+/**
+ * Fetches canvas apps (including custom pages) and model-driven apps in
+ * parallel, splitting them into three typed collections.
+ *
+ * @remarks
+ * Canvas apps and custom pages share the same Dataverse entity set
+ * (`canvasapp`) and are distinguished by a `canvasapptype` field inside
+ * {@link AppDiscovery.getAppsAndPagesByIds}.  Model-driven apps use the
+ * separate `appmodule` entity set and are fetched concurrently via
+ * `Promise.all` to minimise wall-clock time.
+ *
+ * Either fetch leg is skipped entirely when its ID list is empty, so no
+ * unnecessary requests are made for solutions that contain only one app type.
+ */
 export async function processApps(
   client: IDataverseClient,
   canvasAppIds: string[],

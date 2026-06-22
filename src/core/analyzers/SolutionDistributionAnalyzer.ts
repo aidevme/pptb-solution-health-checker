@@ -9,14 +9,26 @@ import type { Solution } from '../types.js';
 import { normalizeGuid } from '../utils/guid.js';
 
 /**
- * Analyzes component distribution across solutions
+ * Breaks down component counts and inferred dependencies per solution.
+ *
+ * @remarks
+ * Accurate component counting requires `solutionComponentMap` (solution ID → Set of
+ * component IDs from the `solutioncomponent` entity). When that map is absent the
+ * fallback returns all-zero counts — this is intentional to avoid falsely attributing
+ * every component to every solution.
+ *
+ * Shared-component detection is deferred: implementing it correctly requires a reverse
+ * index (component ID → solution IDs) which is not yet built during discovery.
+ *
+ * Dependency inference uses publisher customization prefix matching on schema/logical names,
+ * not the Dataverse `dependency` entity. This heuristic may produce false positives for
+ * entities that share a prefix by coincidence.
  */
 export class SolutionDistributionAnalyzer {
   /**
-   * Analyze solution distribution with component counts and dependencies
-   * @param solutions Array of solution metadata
-   * @param result Complete blueprint result with all components
-   * @param solutionComponentMap Optional map of solution IDs to component IDs for accurate counting
+   * @param solutionComponentMap - Solution ID → Set of component IDs from the
+   * `solutioncomponent` Dataverse table. All IDs must be lower-cased GUIDs (no braces).
+   * When omitted, component counts fall back to zeros.
    */
   analyzeSolutionDistribution(
     solutions: Solution[],
@@ -53,9 +65,6 @@ export class SolutionDistributionAnalyzer {
     return distributions.sort((a, b) => a.solutionName.localeCompare(b.solutionName));
   }
 
-  /**
-   * Count components in a solution
-   */
   private countComponentsInSolution(_solution: Solution, _result: BlueprintResult): ComponentCounts {
     // Accurate per-solution counting requires solutionComponentMap, which is always provided
     // when called from BlueprintGenerator. This fallback returns zeros to avoid showing
@@ -83,9 +92,6 @@ export class SolutionDistributionAnalyzer {
     return counts;
   }
 
-  /**
-   * Count components that actually belong to a specific solution (accurate counting)
-   */
   private countComponentsInSolutionAccurate(
     solution: Solution,
     result: BlueprintResult,
@@ -174,9 +180,6 @@ export class SolutionDistributionAnalyzer {
     return counts;
   }
 
-  /**
-   * Identify components shared across multiple solutions
-   */
   private identifySharedComponents(
     _solution: Solution,
     _allSolutions: Solution[],
@@ -189,9 +192,6 @@ export class SolutionDistributionAnalyzer {
     return [];
   }
 
-  /**
-   * Identify dependencies on other solutions
-   */
   private identifyDependencies(
     solution: Solution,
     allSolutions: Solution[],
@@ -273,17 +273,11 @@ export class SolutionDistributionAnalyzer {
     return dependencies;
   }
 
-  /**
-   * Extract publisher prefix from schema name
-   */
   private extractPublisherPrefix(schemaName: string): string | null {
     const match = schemaName.match(/^([a-z]+)_/i);
     return match ? match[1] : null;
   }
 
-  /**
-   * Extract publisher prefix from logical name (less reliable than schema name)
-   */
   private extractPublisherFromLogicalName(logicalName: string): string | null {
     const match = logicalName.match(/^([a-z]+)_/i);
     return match ? match[1] : null;

@@ -1,12 +1,21 @@
 /**
- * Date formatting utilities using en-GB locale (dd/MM/yyyy format)
+ * Date formatting utilities pinned to the `en-GB` locale (`dd/MM/yyyy`).
+ *
+ * @remarks
+ * All functions use the `en-GB` locale deliberately — Dataverse timestamps are
+ * UTC ISO-8601 strings and the UI target audience is primarily UK/EU. Using the
+ * browser's default locale would produce `MM/dd/yyyy` for US users, which would
+ * make dates ambiguous (e.g. `01/02/2025` is 1 Feb in GB and 2 Jan in the US).
+ *
+ * @packageDocumentation
  */
 
 /**
- * Format a date string or Date object to en-GB format (dd/MM/yyyy)
- * @param date Date string or Date object
- * @param includeTime Whether to include time (HH:mm)
- * @returns Formatted date string in en-GB format
+ * Formats a date to `dd/MM/yyyy`, optionally with a 24-hour `HH:mm` suffix.
+ *
+ * @param date - ISO-8601 string or `Date` object
+ * @param includeTime - When `true`, appends ` HH:mm` in 24-hour format
+ * @returns Formatted date string in `en-GB` locale
  */
 export function formatDate(date: string | Date, includeTime: boolean = false): string {
   const dateObj = typeof date === 'string' ? new Date(date) : date;

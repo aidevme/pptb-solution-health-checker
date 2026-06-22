@@ -2,7 +2,12 @@ import type { IDataverseClient } from '../dataverse/IDataverseClient.js';
 import type { Solution } from '../types.js';
 
 /**
- * Discovers solutions in the Power Platform environment
+ * Discovers solutions in the Power Platform environment.
+ *
+ * @remarks
+ * The `isvisible eq true` filter excludes internal Microsoft infrastructure solutions
+ * (e.g. `System`, `Active`) that are present in every environment but are not
+ * meaningful targets for health checks.
  */
 export class SolutionDiscovery {
   private readonly client: IDataverseClient;
@@ -11,10 +16,6 @@ export class SolutionDiscovery {
     this.client = client;
   }
 
-  /**
-   * Get all visible solutions with publisher information
-   * @returns Array of solutions, ordered by friendly name
-   */
   async getSolutions(): Promise<Solution[]> {
     try {
       const result = await this.client.query<Solution>('solutions', {

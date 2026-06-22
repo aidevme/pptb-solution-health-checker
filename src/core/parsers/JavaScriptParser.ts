@@ -1,12 +1,20 @@
 import type { JavaScriptAnalysis, ExternalCall } from '../types/blueprint.js';
 
 /**
- * Parser for JavaScript web resources
+ * Analyses JavaScript web resource content via regex-based static analysis (no AST).
+ *
+ * @remarks
+ * Detection is intentionally shallow — the goal is a quick structural overview, not a
+ * security audit. Known limitations:
+ * - Framework detection uses string matching; `$` triggers a jQuery hit even if the
+ *   variable is unrelated to jQuery (e.g., template literals or TypeScript decorators).
+ * - `countLinesOfCode` skips lines whose first non-whitespace token is `//`, `/*`, or `*`,
+ *   but does **not** strip inline block comments from code lines, so minified files
+ *   that merge code and comments on one line may over-count.
+ * - External-call detection only finds literal URL strings. Dynamically constructed URLs
+ *   (e.g., `baseUrl + '/api/endpoint'`) are invisible to these patterns.
  */
 export class JavaScriptParser {
-  /**
-   * Parse JavaScript content for external calls and patterns
-   */
   static parse(content: string, _resourceName: string): JavaScriptAnalysis {
     const externalCalls: ExternalCall[] = [];
     const frameworks: string[] = [];
@@ -68,9 +76,6 @@ export class JavaScriptParser {
     }
   }
 
-  /**
-   * Count non-empty, non-comment lines
-   */
   private static countLinesOfCode(content: string): number {
     const lines = content.split('\n');
     let count = 0;
@@ -86,9 +91,6 @@ export class JavaScriptParser {
     return count;
   }
 
-  /**
-   * Detect external API calls
-   */
   private static detectExternalCalls(content: string): ExternalCall[] {
     const calls: ExternalCall[] = [];
     const seenUrls = new Set<string>();
@@ -187,9 +189,6 @@ export class JavaScriptParser {
     return calls;
   }
 
-  /**
-   * Check if URL is external (not Dataverse/CRM)
-   */
   private static isExternalUrl(url: string): boolean {
     // Filter out internal Dataverse/CRM URLs
     const internalPatterns = [
@@ -208,9 +207,6 @@ export class JavaScriptParser {
     return url.startsWith('http://') || url.startsWith('https://');
   }
 
-  /**
-   * Extract domain from URL
-   */
   private static extractDomain(url: string): string {
     try {
       const urlObj = new URL(url);
@@ -222,9 +218,6 @@ export class JavaScriptParser {
     }
   }
 
-  /**
-   * Determine code complexity
-   */
   private static determineComplexity(linesOfCode: number, externalCallsCount: number, frameworksCount: number): 'Low' | 'Medium' | 'High' {
     let score = 0;
 

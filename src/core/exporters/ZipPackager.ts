@@ -2,26 +2,29 @@ import JSZip from 'jszip';
 import type { MarkdownExport } from '../types/blueprint.js';
 
 /**
- * Package all exports into downloadable ZIP file
+ * Builds a ZIP archive from one or more blueprint export formats using JSZip.
  *
- * ZIP Structure:
- * system-blueprint-{timestamp}.zip
- * ├── markdown/
- * │   ├── README.md
- * │   ├── summary/
- * │   ├── entities/
- * │   └── analysis/
+ * @remarks
+ * The archive is generated asynchronously with DEFLATE level 6 compression.
+ * Markdown files are placed under a `markdown/` sub-folder to preserve the
+ * multi-file directory structure produced by {@link MarkdownReporter}.
+ * A human-readable `metadata.txt` summary is always included regardless of
+ * which formats are selected.
+ *
+ * ZIP structure when all formats are included:
+ * ```
+ * ├── markdown/   (mirrors MarkdownExport.files map)
  * ├── blueprint.json
  * ├── blueprint.html
  * └── metadata.txt
+ * ```
  */
 export class ZipPackager {
   /**
-   * Package blueprint exports into ZIP blob
-   * @param markdown Markdown export (optional)
-   * @param json JSON export string (optional)
-   * @param html HTML export string (optional)
-   * @returns ZIP file as Blob
+   * @param markdown - Optional. When provided, all entries from
+   *   {@link MarkdownExport.files} are placed inside a `markdown/` folder.
+   * @param json - Optional pretty-printed JSON string from {@link JsonReporter}.
+   * @param html - Optional self-contained HTML string from {@link HtmlReporter}.
    */
   async packageBlueprint(
     markdown?: MarkdownExport,
@@ -67,9 +70,6 @@ export class ZipPackager {
     return blob;
   }
 
-  /**
-   * Generate metadata.txt content
-   */
   private generateMetadata(
     timestamp: Date,
     markdown?: MarkdownExport,
@@ -136,9 +136,6 @@ export class ZipPackager {
     return lines.join('\n');
   }
 
-  /**
-   * Format bytes to human-readable string
-   */
   private formatBytes(bytes: number): string {
     if (bytes === 0) return '0 Bytes';
 

@@ -29,6 +29,20 @@ interface WorkflowClientDataRecord {
   clientdata: string | null;
 }
 
+/**
+ * Discovers Power Automate Flows (Modern Flows) from the `workflows` entity (category=5).
+ *
+ * @remarks
+ * `clientdata` is the JSON payload that encodes the full flow definition. It is excluded
+ * from the metadata pass because a single flow's `clientdata` can exceed 1 MB; including
+ * it alongside all other fields in a batched query risks HTTP 413 responses. A second pass
+ * with `initialBatchSize=3` fetches only `clientdata` for the already-identified IDs.
+ *
+ * The `category eq 5` filter is applied in every batch predicate rather than once at the
+ * top level because the IDs come from `solutioncomponents.componenttype=29` (Workflow),
+ * which also includes Business Rules (category=2), BPFs (category=4), and Classic
+ * Workflows (category=0/3). The filter ensures only Modern Flows are returned.
+ */
 export class FlowDiscovery implements IDiscoverer<Flow> {
   private readonly client: IDataverseClient;
   private onProgress?: (current: number, total: number) => void;

@@ -1,6 +1,11 @@
 /**
  * Canonical stage-number-to-label mapping for Dataverse SDK Message Processing Steps.
  * Used by both PluginDiscovery (data layer) and PluginsList (UI layer).
+ *
+ * @remarks
+ * Stage 50 (`Asynchronous`) is not an official Dataverse pipeline stage — it is a
+ * display-only sentinel used internally to represent steps registered with
+ * `mode = 1` (async) that execute outside the synchronous transaction boundary.
  */
 export const PLUGIN_STAGE_LABELS: Record<number, string> = {
   10: 'PreValidation',

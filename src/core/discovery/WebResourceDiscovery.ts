@@ -18,6 +18,20 @@ interface WebResourceRecord {
   '_modifiedby_value@OData.Community.Display.V1.FormattedValue'?: string;
 }
 
+/**
+ * Discovers Web Resources from the `webresourceset` entity set.
+ *
+ * @remarks
+ * The `content` field is a base64-encoded string. It is excluded from the first
+ * metadata pass and fetched separately in a second pass with `initialBatchSize=5`
+ * because JS files in particular can be hundreds of KB each. Content is only
+ * fetched for JavaScript resources (type=3); all other types (HTML, CSS, images,
+ * etc.) get `content: null` and `contentSize` reflects only the encoded length
+ * from the first pass — they are not decoded.
+ *
+ * The entity set name is `webresourceset`, not `webresources` — the trailing `set`
+ * is required by the Dataverse API and is an undocumented naming quirk.
+ */
 export class WebResourceDiscovery implements IDiscoverer<WebResource> {
   private readonly client: IDataverseClient;
   private onProgress?: (current: number, total: number) => void;

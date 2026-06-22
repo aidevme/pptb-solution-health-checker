@@ -149,10 +149,6 @@ export class SecurityRoleDiscovery implements IDiscoverer<SecurityRole> {
     private logger?: FetchLogger
   ) {}
 
-  /**
-   * Batch-fetch security roles by ID using withAdaptiveBatch.
-   * Uses `roleid eq <guid>` OData filters — same pattern as FlowDiscovery and ClassicWorkflowDiscovery.
-   */
   discoverByIds(ids: string[]): Promise<SecurityRole[]> {
     return this.getSecurityRoles(ids);
   }

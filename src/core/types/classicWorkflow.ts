@@ -9,16 +9,19 @@ export interface ClassicWorkflow {
   id: string;
   name: string;
   description: string | null;
+  /** Dataverse workflow type code: 1 = Definition, 2 = Activation, 3 = Template. */
   type: number;
-  typeName: string; // Definition, Activation, Template
+  typeName: string;
+  /** Dataverse workflow mode code: 0 = Background (async), 1 = RealTime (sync). */
   mode: number;
-  modeName: string; // Background, RealTime
+  modeName: string;
   triggerOnCreate: boolean;
   triggerOnUpdate: boolean;
   triggerOnDelete: boolean;
   /** Parsed from triggeronupdateattributelist; empty array = fires on all updates */
   triggerOnUpdateAttributes: string[];
   onDemand: boolean; // Manual trigger
+  /** Dataverse workflow scope code: 1 = User, 2 = BusinessUnit, 4 = Parent:Child BU, 8 = Organization. */
   scope: number;
   scopeName: string;
   entity: string;

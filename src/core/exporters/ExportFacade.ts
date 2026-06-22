@@ -1,8 +1,12 @@
 /**
- * ExportFacade — produces all export formats from a BlueprintResult.
+ * Produces all export formats from a completed {@link BlueprintResult}.
  *
- * Decoupled from BlueprintGenerator: it accepts a completed result and produces output.
- * All imports are static (PATTERN-007: dynamic imports break pptb-webview://).
+ * @remarks
+ * Decoupled from `BlueprintGenerator`: it accepts a finished result and delegates
+ * to the appropriate reporter or packager. All reporter instances are created eagerly
+ * at construction time so startup cost is paid once per facade, not per export call.
+ *
+ * All imports are static (PATTERN-007: dynamic `import()` breaks the `pptb-webview://` scheme).
  */
 import type { BlueprintResult, MarkdownExport } from '../types/blueprint.js';
 import { MarkdownReporter } from '../reporters/MarkdownReporter.js';
@@ -16,31 +20,22 @@ export class ExportFacade {
   private readonly jsonReporter = new JsonReporter();
   private readonly zipPackager = new ZipPackager();
 
-  /**
-   * Export as JSON string (pretty-printed, with metadata wrapper).
-   */
   exportAsJson(result: BlueprintResult): string {
     return this.jsonReporter.generate(result);
   }
 
-  /**
-   * Export as Markdown file map.
-   */
   exportAsMarkdown(result: BlueprintResult): MarkdownExport {
     return this.markdownReporter.generate(result);
   }
 
-  /**
-   * Export as single-page HTML document string.
-   */
   exportAsHtml(result: BlueprintResult): string {
     return this.htmlReporter.generate(result);
   }
 
   /**
-   * Package selected formats into a ZIP blob.
-   * @param result Completed blueprint result
-   * @param formats Array of format keys to include: 'json', 'html', 'markdown'
+   * Packages the selected export formats into a ZIP {@link Blob}.
+   *
+   * @param formats - Subset of `['json', 'html', 'markdown']` to include. Unknown keys are silently ignored.
    */
   async exportAsZip(result: BlueprintResult, formats: string[]): Promise<Blob> {
     const json = formats.includes('json') ? this.exportAsJson(result) : undefined;

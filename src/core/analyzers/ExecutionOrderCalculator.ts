@@ -2,24 +2,20 @@ import type { PluginStep } from '../types.js';
 import type { Flow, BusinessRule, ExecutionPipeline, ExecutionStep, FormDefinition } from '../types/blueprint.js';
 
 /**
- * Calculates execution order for entity events
+ * Calculates the execution pipeline for a single entity event (Create, Update, Delete).
  *
+ * @remarks
+ * Form-script support (OnLoad, OnSave, onChange handlers) is partially implemented —
+ * handlers are included when `forms` is supplied, but `hasExternalCall` on JavaScript
+ * steps is always `false` because web resource static analysis is not yet wired in.
+ *
+ * @privateRemarks
  * TODO: Add support for JavaScript form scripts
  * - Query systemform table for form definitions
  * - Parse FormXml to extract web resource libraries and event handlers
  * - Include OnLoad, OnSave, onChange handlers in client-side execution
  */
 export class ExecutionOrderCalculator {
-  /**
-   * Calculate execution pipeline for a specific entity and event
-   * @param entity Entity logical name
-   * @param event Event type (Create, Update, Delete, etc.)
-   * @param plugins Plugin steps for this entity
-   * @param flows Flows for this entity
-   * @param businessRules Business rules for this entity
-   * @param forms Form definitions for this entity
-   * @returns Complete execution pipeline
-   */
   calculatePipeline(
     entity: string,
     event: string,
@@ -79,9 +75,6 @@ export class ExecutionOrderCalculator {
     };
   }
 
-  /**
-   * Build client-side execution steps from business rules and form event handlers
-   */
   private buildClientSideSteps(businessRules: BusinessRule[], forms: FormDefinition[], event: string): ExecutionStep[] {
     const steps: ExecutionStep[] = [];
 
@@ -136,9 +129,6 @@ export class ExecutionOrderCalculator {
     return steps;
   }
 
-  /**
-   * Build server-side synchronous steps from plugins, flows, and entity-scoped business rules
-   */
   private buildServerSideSteps(
     plugins: PluginStep[],
     flows: Flow[],
@@ -194,9 +184,12 @@ export class ExecutionOrderCalculator {
         }
       });
 
-    // Add synchronous flows to postOperation (they execute after mainOperation)
+    // Add synchronous flows to postOperation (they execute after mainOperation).
+    // scope 50 is the Dataverse "User" scope value that maps to async execution;
+    // all other scope values (1 = User, 2 = Business Unit, 4 = Parent, 8 = Organisation)
+    // are treated as synchronous here.
     flows
-      .filter((f) => f.state === 'Active' && f.scope !== 50) // scope 50 is async
+      .filter((f) => f.state === 'Active' && f.scope !== 50)
       .forEach((flow) => {
         postOperation.push({
           order: 0, // Will be set after grouping
@@ -239,9 +232,6 @@ export class ExecutionOrderCalculator {
     };
   }
 
-  /**
-   * Build asynchronous execution steps
-   */
   private buildAsyncSteps(plugins: PluginStep[], flows: Flow[]): ExecutionStep[] {
     const asyncSteps: ExecutionStep[] = [];
 
@@ -263,7 +253,7 @@ export class ExecutionOrderCalculator {
         });
       });
 
-    // Add async flows
+    // Add async flows (scope === 50, see note in buildServerSideSteps)
     flows
       .filter((f) => f.state === 'Active' && f.scope === 50)
       .forEach((flow) => {
@@ -282,9 +272,6 @@ export class ExecutionOrderCalculator {
     return asyncSteps;
   }
 
-  /**
-   * Check if any step has external calls
-   */
   private checkExternalCalls(
     clientSide: ExecutionStep[],
     serverSideSync: {
@@ -307,9 +294,6 @@ export class ExecutionOrderCalculator {
     return allSteps.some((step) => step.hasExternalCall);
   }
 
-  /**
-   * Get all unique events for an entity from plugins, flows, business rules, and forms
-   */
   getEntityEvents(
     entity: string,
     plugins: PluginStep[],

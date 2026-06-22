@@ -3,19 +3,29 @@
  */
 
 /**
- * Builds an OData $filter expression joining multiple values with OR.
+ * Builds an OData `$filter` expression joining multiple values with OR.
  *
- * Examples:
- *   buildOrFilter(['a', 'b'], 'fieldname')
- *     → "fieldname eq 'a' or fieldname eq 'b'"
+ * @remarks
+ * Dataverse OData requires GUIDs to be unquoted (`roleid eq 3fa85f64-…`) whereas
+ * string values must be single-quoted (`name eq 'foo'`). Always pass `{ guids: true }`
+ * when filtering on GUID/lookup fields to avoid a 400 Bad Request.
  *
- *   buildOrFilter(['guid1', 'guid2'], 'roleid', { guids: true })
- *     → "roleid eq guid1 or roleid eq guid2"
+ * @example String filter
+ * ```ts
+ * buildOrFilter(['a', 'b'], 'fieldname')
+ * // → "fieldname eq 'a' or fieldname eq 'b'"
+ * ```
  *
- * @param values  Array of string values to match against
- * @param field   OData field name
- * @param opts    Optional: set guids=true to omit quotes (GUIDs need no quotes in OData)
- * @returns       OData OR filter expression, or empty string if values is empty
+ * @example GUID filter
+ * ```ts
+ * buildOrFilter(['guid1', 'guid2'], 'roleid', { guids: true })
+ * // → "roleid eq guid1 or roleid eq guid2"
+ * ```
+ *
+ * @param values - Values to match against
+ * @param field - OData field name
+ * @param opts - Set `guids: true` to omit single-quotes around values
+ * @returns OData OR filter expression, or empty string when `values` is empty
  */
 export function buildOrFilter(
   values: string[],

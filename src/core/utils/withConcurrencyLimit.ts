@@ -1,10 +1,16 @@
 /**
  * Runs tasks with a maximum concurrency limit.
- * Uses Promise.allSettled semantics — one failure does not cancel others.
  *
- * @param limit   Maximum number of concurrent tasks
- * @param tasks   Array of async task factories
- * @returns       Array of PromiseSettledResult<T> in input order
+ * @remarks
+ * Uses `Promise.allSettled` semantics — one failing task does not cancel the others.
+ * Results are returned in the same order as `tasks`, regardless of completion order.
+ * The scheduler seeds `limit` workers up-front; each worker chains to the next
+ * available task after completing, so the pool stays saturated without using a
+ * separate queue data structure.
+ *
+ * @param limit - Maximum number of simultaneously in-flight tasks
+ * @param tasks - Array of async task factories (each called at most once)
+ * @returns Array of {@link PromiseSettledResult} in input order
  */
 export async function withConcurrencyLimit<T>(
   limit: number,

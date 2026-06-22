@@ -1,12 +1,16 @@
 import type { BlueprintResult, ExternalEndpoint, ExternalCallSource, RiskFactor } from '../types/blueprint.js';
 
 /**
- * Aggregates and risk-assesses all external API dependencies
+ * Aggregates external API dependencies found in flows and JavaScript web resources,
+ * deduplicates by domain, and assigns a risk level to each endpoint.
+ *
+ * @remarks
+ * Classic workflow HTTP calls and plugin assembly analysis are not supported —
+ * XAML parsing for HTTP steps is deferred, and plugin binaries are not accessible.
+ * The `riskLevel` assigned here (`Trusted` / `Known` / `Unknown`) is based on a
+ * static allow-list; it does not reflect runtime security posture.
  */
 export class ExternalDependencyAggregator {
-  /**
-   * Aggregate all external dependencies with risk assessment
-   */
   aggregateExternalDependencies(result: BlueprintResult): ExternalEndpoint[] {
     const endpointMap = new Map<string, ExternalEndpoint>();
 
@@ -77,9 +81,6 @@ export class ExternalDependencyAggregator {
     });
   }
 
-  /**
-   * Add or update endpoint in map
-   */
   private addOrUpdateEndpoint(
     endpointMap: Map<string, ExternalEndpoint>,
     domain: string,
@@ -112,9 +113,6 @@ export class ExternalDependencyAggregator {
     }
   }
 
-  /**
-   * Assess risk level based on domain
-   */
   private assessRiskLevel(domain: string): 'Trusted' | 'Known' | 'Unknown' {
     const normalizedDomain = domain.toLowerCase();
 
@@ -168,9 +166,6 @@ export class ExternalDependencyAggregator {
     return 'Unknown';
   }
 
-  /**
-   * Assess risk factors for endpoint
-   */
   private assessRiskFactors(endpoint: ExternalEndpoint): RiskFactor[] {
     const factors: RiskFactor[] = [];
 

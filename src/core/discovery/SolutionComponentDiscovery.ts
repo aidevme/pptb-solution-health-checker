@@ -23,7 +23,19 @@ interface WorkflowRecord {
 }
 
 /**
- * Discovers all components in selected solution(s)
+ * Discovers all components in selected solution(s).
+ *
+ * @remarks
+ * Custom APIs (type 10076), Connection References (type 371), and Custom Connectors
+ * (type 372) do not appear in `solutioncomponents` under their expected type codes in
+ * practice — Dataverse surfaces them under undocumented numeric codes. Their `objectid`
+ * values DO appear in the `solutioncomponents` result set. Discovery for these three
+ * types therefore uses an objectid-intersection strategy: all records from each entity
+ * set are fetched via `queryAll`, and only those whose primary key is present in the
+ * known `solutioncomponents` objectid set are kept.
+ *
+ * When the Default Solution is selected, `discoverAllUnmanagedComponents` is called
+ * instead; it queries each entity type directly and does not use `solutioncomponents`.
  */
 export class SolutionComponentDiscovery {
   private readonly client: IDataverseClient;
@@ -35,10 +47,18 @@ export class SolutionComponentDiscovery {
   }
 
   /**
-   * Discover all components in the specified solutions
-   * @param solutionIds Array of solution IDs to discover
-   * @param solutionUniqueNames Array of solution unique names (to detect Default solution)
-   * @returns Inventory of all component types found
+   * Discovers all components in the specified solutions.
+   *
+   * @remarks
+   * `solutionUniqueNames` is checked for the literal value `"default"` (case-insensitive)
+   * to detect the Default Solution. When present, the entire environment is queried
+   * directly rather than through `solutioncomponents`, and the tracking maps are empty
+   * (no per-solution membership is available).
+   *
+   * `rootcomponentbehavior === 0` on an entity component means "include all subcomponents"
+   * — the entity's forms, views, and attributes are implicitly in scope even if they are
+   * not listed individually in `solutioncomponents`. Entities with this flag are collected
+   * in `entitiesWithAllSubcomponents` so downstream discovery can use that information.
    */
   async discoverComponents(
     solutionIds: string[],
@@ -676,13 +696,6 @@ export class SolutionComponentDiscovery {
     }
   }
 
-  /**
-   * Classify workflows into flows, business rules, classic workflows, and BPFs
-   * @param workflowIds Array of workflow IDs to classify
-   * @param solutionComponentMap Optional solution component map for tracking membership
-   * @param componentToSolutions Optional component to solutions map for tracking membership
-   * @returns Classified workflow inventory with solution tracking
-   */
   async classifyWorkflows(
     workflowIds: string[],
     solutionComponentMap?: Map<string, Set<string>>,

@@ -67,6 +67,7 @@ export interface DetailedEntityMetadata {
       Label: string;
     };
   };
+  /** Dataverse ownership model numeric code: 0 = None, 1 = User/Team, 2 = Organization, 4 = Business. */
   OwnershipType?: number;
   OwnershipTypeName?: string;
   IsAuditEnabled?: {
@@ -121,12 +122,15 @@ export interface AttributeMetadata {
   // Type-specific properties
   MaxLength?: number;
   Precision?: number;
+  /** Union type because Dataverse returns a plain number for some attribute types and `{ Value: number }` for others (e.g. DecimalAttributeMetadata). */
   MinValue?: number | { Value: number };
+  /** Union type because Dataverse returns a plain number for some attribute types and `{ Value: number }` for others (e.g. DecimalAttributeMetadata). */
   MaxValue?: number | { Value: number };
   Format?: string;
   DateTimeBehavior?: {
     Value: string;
   };
+  /** Lookup target entity logical names — only present on Lookup/Customer/Owner attribute types. */
   Targets?: string[];
   OptionSet?: {
     Options: OptionMetadata[];
@@ -225,9 +229,12 @@ export interface Flow {
   name: string;
   description: string | null;
   state: 'Draft' | 'Active' | 'Suspended';
+  /** Raw Dataverse statecode value — `state` is the derived string label. */
   stateCode: number;
+  /** Primary entity the flow is bound to; `null` for scheduled or manually-triggered flows. */
   entity: string | null;
   entityDisplayName: string | null;
+  /** Dataverse workflow scope code: 1 = User, 2 = BusinessUnit, 4 = Parent:Child BU, 8 = Organization. */
   scope: number;
   scopeName: string;
   owner: string;
@@ -350,7 +357,8 @@ export interface FormEventHandler {
 export interface FormDefinition {
   id: string;
   name: string;
-  type: number; // 2=Main, 7=Quick Create, 8=Quick View, etc.
+  /** Dataverse form type code: 2 = Main, 5 = Mobile Express, 6 = Quick View, 7 = Quick Create, 8 = Dialog, 10 = Card, 11 = Main Interactive Experience. */
+  type: number;
   typeName: string;
   entity: string;
   formXml: string;
@@ -365,8 +373,10 @@ export interface WebResource {
   id: string;
   name: string;
   displayName: string;
+  /** Dataverse web resource type code: 1 = HTML, 2 = CSS, 3 = JavaScript, 4 = XML, 5 = PNG, 6 = JPG, 7 = GIF, 8 = XAP (Silverlight), 9 = XSL, 10 = ICO, 11 = SVG, 12 = RESX. */
   type: number;
   typeName: string;
+  /** Base64-encoded content as returned by Dataverse; `null` when the resource is too large to inline or was not fetched. */
   content: string | null;
   contentSize: number;
   description: string | null;
@@ -416,7 +426,9 @@ export interface ExecutionStep {
   type: 'Plugin' | 'Flow' | 'BusinessRule' | 'JavaScript';
   name: string;
   id: string;
+  /** Dataverse SDK pipeline stage: 10 = PreValidation, 20 = PreOperation, 30 = MainOperation, 40 = PostOperation. */
   stage?: number;
+  /** Execution order within a stage — lower rank runs first. */
   rank?: number;
   mode: 'Sync' | 'Async' | 'Client';
   hasExternalCall: boolean;

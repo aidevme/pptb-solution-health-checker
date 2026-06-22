@@ -14,7 +14,14 @@ interface RawConnector {
 }
 
 /**
- * Discovery service for Custom Connectors
+ * Discovers Custom Connectors from the `connectors` entity set.
+ *
+ * @remarks
+ * The `iscustomizable` field is a `ManagedProperty` OData navigation property.
+ * Filtering on it (e.g. `iscustomizable/Value eq true`) returns 0 results silently
+ * in some environments, so no filter is applied here. The `connectors` table only
+ * holds connectors that are registered in the current environment, not built-in
+ * platform connectors, so the result set is naturally scoped.
  */
 export class CustomConnectorDiscovery {
   private readonly client: IDataverseClient;
@@ -31,9 +38,6 @@ export class CustomConnectorDiscovery {
     this.logger = logger;
   }
 
-  /**
-   * Get custom connectors by their IDs
-   */
   async getConnectorsByIds(connectorIds: string[]): Promise<CustomConnector[]> {
     if (connectorIds.length === 0) {
       return [];
@@ -63,9 +67,6 @@ export class CustomConnectorDiscovery {
     return allResults.map(raw => this.mapToCustomConnector(raw));
   }
 
-  /**
-   * Map raw Dataverse response to CustomConnector
-   */
   private mapToCustomConnector(raw: RawConnector): CustomConnector {
     return {
       id: raw.connectorid,

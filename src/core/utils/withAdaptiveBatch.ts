@@ -49,6 +49,21 @@ export interface AdaptiveBatchResult<TResult, TId> {
   finalBatchSize: number;
 }
 
+/**
+ * Fetches a large list of IDs in batches, automatically shrinking the batch size on failure.
+ *
+ * @remarks
+ * Each batch is wrapped by {@link withRetry} for transient-error recovery. If all retry
+ * attempts are exhausted the batch is halved (controlled by `reductionFactor`) and the
+ * same position is retried at the smaller size. The reduced size persists for all
+ * subsequent batches in the same call to prevent oscillation.
+ * Items that still fail at `minBatchSize` are added to `failedIds` and skipped —
+ * the caller decides whether partial results are acceptable.
+ *
+ * @param ids - Full list of IDs to process
+ * @param fetchFn - Async function that fetches one batch and returns its results
+ * @param options - Tuning knobs; all fields are optional
+ */
 export async function withAdaptiveBatch<TId, TResult>(
   ids: TId[],
   fetchFn: (batch: TId[]) => Promise<TResult[]>,

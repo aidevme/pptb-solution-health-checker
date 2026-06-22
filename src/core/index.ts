@@ -1,3 +1,27 @@
+/**
+ * Public API surface for the entire `core/` layer.
+ *
+ * @remarks
+ * Two type sources coexist and serve different roles:
+ * - `./types.ts` — root-level primitives (Publisher, Solution, EntityMetadata, PluginStep,
+ *   ImageDefinition) shared across the whole codebase.
+ * - `./types/` — domain-specific type modules (blueprint, classicWorkflow, crossEntityTrace, …).
+ *
+ * Discovery services are split intentionally: `PublisherDiscovery` and `SolutionDiscovery`
+ * are exported as runtime values because UI components (ScopeSelector) instantiate them.
+ * All other discovery modules export types only — their classes are consumed exclusively
+ * inside `BlueprintGenerator` and never referenced by UI directly.
+ *
+ * `BlueprintScope` is a re-export alias for `ScopeSelection` from `BlueprintGenerator`;
+ * the alias exists to avoid a name collision with `ScopeSelection` used elsewhere in the UI.
+ *
+ * `FetchLogger` itself is NOT re-exported here — consumers that need the class import it
+ * directly from `./utils/FetchLogger.js` to avoid pulling the class into bundles that only
+ * need the log-entry types.
+ *
+ * @packageDocumentation
+ */
+
 // Types
 export type { Publisher, Solution, EntityMetadata, PluginStep, ImageDefinition } from './types.js';
 export type { ClassicWorkflow, MigrationRecommendation, MigrationFeature } from './types/classicWorkflow.js';

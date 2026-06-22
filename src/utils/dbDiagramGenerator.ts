@@ -2,8 +2,32 @@ import type { BlueprintResult } from '../core';
 import { isSystemEntity, isSystemRelationship } from '../core/utils/systemFilters.js';
 
 /**
- * Generates dbdiagram.io compatible code from a BlueprintResult
- * Format: https://dbdiagram.io/d
+ * Generates [dbdiagram.io](https://dbdiagram.io/d) DBML from a `BlueprintResult`.
+ *
+ * @remarks
+ * The output is **DBML** (Database Markup Language), not SQL DDL. It is intended
+ * to be pasted directly into dbdiagram.io.
+ *
+ * The function runs four sequential passes over `result.entities`:
+ *
+ * 1. **exportedEntities + entityAttributes** — collects all non-system entity names
+ *    and their real attribute sets (only for entities that have attribute data).
+ * 2. **relationshipColumns** — for entities with no attribute data, derives the
+ *    minimal column set from their ManyToOne relationship references so that `Ref`
+ *    lines in the output always point to a column that exists in the `Table` block.
+ * 3. **Table blocks** — emits one `Table` block per non-system entity. Uses real
+ *    attributes when available; falls back to relationship-derived columns; falls
+ *    back further to a single `id uniqueidentifier` placeholder.
+ * 4. **Ref lines** — emits ManyToOne relationships as `Ref: A.col > B.col`.
+ *    ManyToMany relationships are emitted as comments (`// M:N: ...`) because
+ *    dbdiagram.io has no native M:N syntax — they require an explicit intersect table.
+ *
+ * Duplicate relationships are deduplicated via a `Set` keyed on
+ * `ReferencingEntity.ReferencingAttribute->ReferencedEntity.ReferencedAttribute`
+ * for ManyToOne, and on sorted entity names + intersect entity name for ManyToMany.
+ *
+ * @param result - Completed blueprint result containing entity and relationship data
+ * @returns DBML string ready to paste into dbdiagram.io
  */
 export function generateDbDiagramCode(result: BlueprintResult): string {
   const lines: string[] = [];
@@ -196,7 +220,8 @@ export function generateDbDiagramCode(result: BlueprintResult): string {
 }
 
 /**
- * Maps Dataverse attribute types to database column types for dbdiagram.io
+ * Maps a Dataverse `AttributeType` string to the nearest DBML column type.
+ * Falls back to `nvarchar` for any type not in the map (virtual, custom, or future types).
  */
 function mapAttributeTypeToDbType(attributeType: string): string {
   const typeMap: Record<string, string> = {

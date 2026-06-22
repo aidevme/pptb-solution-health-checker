@@ -73,6 +73,13 @@ export interface BlueprintAccumulator {
  * Each step receives the full ProcessorContext and writes its results into
  * context.acc. Steps must not throw — they should catch errors internally
  * and push to context.stepWarnings.
+ *
+ * @remarks
+ * The no-throw contract keeps {@link BlueprintGenerator.generate} from
+ * aborting the entire run when a single component type fails.  A step that
+ * catches an error and pushes a warning still completes with partial results;
+ * a step that throws causes all subsequent steps to be skipped and the
+ * blueprint to fail entirely.
  */
 export interface ProcessorStep {
   /** Human-readable name shown in progress messages */

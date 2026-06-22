@@ -24,6 +24,17 @@ interface RawConnectionReference {
   '_modifiedby_value@OData.Community.Display.V1.FormattedValue'?: string;
 }
 
+/**
+ * Discovers Connection References from the `connectionreferences` entity set.
+ *
+ * @remarks
+ * The `connectorid` field contains a resource path in the format
+ * `/providers/Microsoft.PowerApps/apis/{name}` rather than a GUID. The display name
+ * surfaced by `getConnectorDisplayName` is extracted from that path as the segment
+ * after `/apis/`. For built-in connectors this matches the well-known connector name
+ * (e.g. `shared_sharepointonline`); for custom connectors the segment is the connector's
+ * unique name.
+ */
 export class ConnectionReferenceDiscovery implements IDiscoverer<ConnectionReference> {
   private readonly client: IDataverseClient;
   private onProgress?: (current: number, total: number) => void;

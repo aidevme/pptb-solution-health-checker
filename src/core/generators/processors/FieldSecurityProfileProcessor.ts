@@ -4,6 +4,19 @@ import type { ProgressInfo, StepWarning } from '../../types/blueprint.js';
 import { FieldSecurityProfileDiscovery, type FieldSecurityProfile, type EntityFieldSecurity } from '../../discovery/FieldSecurityProfileDiscovery.js';
 import { normalizeGuid } from '../../utils/guid.js';
 
+/**
+ * Resolves field security profiles and the per-entity field security map.
+ *
+ * @remarks
+ * The discovery layer does not support filtering field security profiles by ID
+ * via an OData `$filter` because the `fieldsecurityprofile` entity set does
+ * not expose a reliable batch-by-ID endpoint in all API versions.  Instead,
+ * all profiles are fetched and then filtered client-side against `profileIds`.
+ *
+ * `fieldSecurityByEntity` is populated for **all** entities in scope, not only
+ * those that have profiles — callers can safely check for a key without
+ * worrying about undefined map entries.
+ */
 export async function processFieldSecurityProfiles(
   client: IDataverseClient,
   profileIds: string[],

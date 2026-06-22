@@ -1,6 +1,19 @@
 /**
- * HTML Templates for Blueprint Report
- * Generates each section of the HTML report with embedded CSS and JavaScript
+ * Renders every structural part of the self-contained HTML blueprint report.
+ *
+ * @remarks
+ * The output is a single `.html` file with no external asset dependencies except
+ * the Mermaid CDN script (used for ERD diagrams). All CSS and interactive JavaScript
+ * are inlined in `htmlHead` and `htmlScripts`.
+ *
+ * A `localStorage` / `sessionStorage` no-op shim is injected **before** the Mermaid
+ * `<script>` tag so that Mermaid's internal caching does not throw a `SecurityError`
+ * when the file is opened from a `file://` URL in Edge (storage access is blocked by
+ * default in that context).
+ *
+ * Section rendering is driven externally by {@link HtmlReporter} via the
+ * {@link IHtmlTemplateSection} registry — this class exposes individual `html*` methods
+ * so each section can call exactly the template it needs.
  */
 import type {
   BlueprintResult,
@@ -32,9 +45,6 @@ import type { CanvasApp } from '../../types/canvasApp.js';
 import type { CustomPage } from '../../types/customPage.js';
 import type { ModelDrivenApp } from '../../types/modelDrivenApp.js';
 
-/**
- * Main HTML Templates class
- */
 export class HtmlTemplates {
   /**
    * Generate complete HTML head section

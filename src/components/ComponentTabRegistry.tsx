@@ -1,4 +1,4 @@
-/**
+﻿/**
  * ComponentTabRegistry — single source of truth for all component browser tabs.
  *
  * Each entry drives:
@@ -9,7 +9,7 @@
  * Add new component types here only — no edits required in ResultsDashboard.
  */
 import type { ReactElement, ReactNode } from 'react';
-import type { BlueprintResult } from '../core';
+import type { HealthCheckerResult } from '../core';
 import {
   EntitiesIcon,
   PluginsIcon,
@@ -59,19 +59,19 @@ export interface ComponentTabDefinition {
    * Typed as ReactElement so it is directly compatible with Fluent UI Tab's icon slot.
    */
   icon: ReactElement;
-  /** Return the component count derived from BlueprintResult. */
-  count: (result: BlueprintResult) => number;
+  /** Return the component count derived from HealthCheckerResult. */
+  count: (result: HealthCheckerResult) => number;
   /** Tab content panel JSX. Only called when the tab is selected. */
-  render: (result: BlueprintResult) => ReactNode;
+  render: (result: HealthCheckerResult) => ReactNode;
   /**
    * When true, the tab is excluded from the browser list (still shown in summary).
    * Entities tab is never hidden — it provides a stable default TabList option.
    */
-  hidden?: (result: BlueprintResult) => boolean;
+  hidden?: (result: HealthCheckerResult) => boolean;
 }
 
 /** Unique plugin package count — reused by two registry entries. */
-function uniquePluginPackageCount(result: BlueprintResult): number {
+function uniquePluginPackageCount(result: HealthCheckerResult): number {
   return new Set(result.plugins.map((p) => p.assemblyName).filter(Boolean)).size;
 }
 
@@ -83,7 +83,7 @@ export const COMPONENT_TABS: ComponentTabDefinition[] = [
     count: (r) => r.summary.totalEntities,
     render: (r) => (
       <EntityList
-        blueprints={r.entities}
+        healthCheckers={r.entities}
         classicWorkflows={r.classicWorkflows}
         businessProcessFlows={r.businessProcessFlows}
       />
@@ -239,7 +239,7 @@ export const COMPONENT_TABS: ComponentTabDefinition[] = [
  * Compute the default selected browser tab key — first tab with data.
  * Falls back to 'entities' (always the stable default).
  */
-export function getDefaultTabKey(result: BlueprintResult): string {
+export function getDefaultTabKey(result: HealthCheckerResult): string {
   for (const tab of COMPONENT_TABS) {
     if (tab.count(result) > 0) return tab.key;
   }

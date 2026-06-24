@@ -25,7 +25,7 @@ import {
 import type { CustomAPI, CustomAPIParameter } from '../core';
 import { formatDate } from '../utils/dateFormat';
 
-const useStyles = makeStyles({
+const useCustomAPIDetailViewStyles = makeStyles({
   root: {
     maxWidth: '1400px',
     padding: tokens.spacingVerticalXL,
@@ -121,7 +121,7 @@ interface CustomAPIDetailViewProps {
  * Detailed view of a Custom API with request/response parameters
  */
 export function CustomAPIDetailView({ api }: CustomAPIDetailViewProps) {
-  const styles = useStyles();
+  const styles = useCustomAPIDetailViewStyles();
 
   const renderParameterTable = (parameters: CustomAPIParameter[], title: string, emptyMessage: string) => {
     if (parameters.length === 0) {

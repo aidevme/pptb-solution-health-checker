@@ -1,5 +1,5 @@
-/**
- * Registry of all ProcessorStep implementations for BlueprintGenerator.
+﻿/**
+ * Registry of all ProcessorStep implementations for HealthCheckerGenerator.
  *
  * Each step wraps the corresponding processor function with the uniform
  * ProcessorStep interface. Steps write their results into context.acc.
@@ -372,7 +372,7 @@ const formsStep: ProcessorStep = {
 
 /**
  * Ordered registry of all processor steps.
- * BlueprintGenerator iterates this array sequentially.
+ * HealthCheckerGenerator iterates this array sequentially.
  *
  * To add a new component type: implement a ProcessorStep object above
  * and append it to this array — no changes to generate() are required.

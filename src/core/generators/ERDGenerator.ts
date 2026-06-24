@@ -1,4 +1,4 @@
-import type { EntityBlueprint, ERDDefinition, ERDDiagram, PublisherLegend, EntityQuickLink, ERDGraphData, ERDNode, ERDEdge } from '../types/blueprint.js';
+﻿import type { EntityHealthResult, ERDDefinition, ERDDiagram, PublisherLegend, EntityQuickLink, ERDGraphData, ERDNode, ERDEdge } from '../types/healthChecker.js';
 import type { Publisher } from '../types.js';
 import { getPublisherColors } from '../utils/ColorGenerator.js';
 import { isSystemEntity, isSystemRelationship, hasPlatformEntityCustomRelationship, isBPFEntity } from '../utils/systemFilters.js';
@@ -31,7 +31,7 @@ export class ERDGenerator {
    *   Obtained from the BPF processor result; passed in rather than derived here
    *   to avoid re-fetching metadata.
    */
-  generateMermaidERD(entities: EntityBlueprint[], publishers: Publisher[], bpfEntityNames: ReadonlySet<string> = new Set()): ERDDefinition {
+  generateMermaidERD(entities: EntityHealthResult[], publishers: Publisher[], bpfEntityNames: ReadonlySet<string> = new Set()): ERDDefinition {
     // Filter out system entities (unless they have a custom relationship) and BPF tracking entities (always)
     const filteredEntities = entities.filter(bp => {
       if (isBPFEntity(bp.entity.LogicalName, bpfEntityNames)) return false;
@@ -82,7 +82,7 @@ export class ERDGenerator {
    * Build publisher map from entity schema names and publisher prefixes
    */
   private buildPublisherMap(
-    entities: EntityBlueprint[],
+    entities: EntityHealthResult[],
     publishers: Publisher[]
   ): Map<string, { prefix: string; name: string; color: string; entities: string[] }> {
     const publisherMap = new Map<string, { prefix: string; name: string; color: string; entities: string[] }>();
@@ -149,7 +149,7 @@ export class ERDGenerator {
    * happen when `excludeSystemFields` strips the FK column.
    */
   private generateClassDiagramForEntities(
-    entities: EntityBlueprint[],
+    entities: EntityHealthResult[],
     publisherMap: Map<string, { prefix: string; name: string; color: string; entities: string[] }>,
     id: string,
     title: string,
@@ -335,7 +335,7 @@ export class ERDGenerator {
    * Generate entity quick links with summary stats
    */
   private generateEntityQuickLinks(
-    entities: EntityBlueprint[],
+    entities: EntityHealthResult[],
     _publisherMap: Map<string, { prefix: string; name: string; color: string; entities: string[] }>
   ): EntityQuickLink[] {
     return entities.map(({ entity, plugins, flows, businessRules }) => {
@@ -378,7 +378,7 @@ export class ERDGenerator {
    * intentional: the summary reflects what exists in Dataverse, not what
    * passed the diagram filters.
    */
-  private countTotalRelationships(entities: EntityBlueprint[]): number {
+  private countTotalRelationships(entities: EntityHealthResult[]): number {
     let count = 0;
     const processedManyToMany = new Set<string>();
 
@@ -408,7 +408,7 @@ export class ERDGenerator {
    * Uses the same system-relationship filtering and attribute validation as generateClassDiagramForEntities.
    */
   private buildGraphData(
-    entities: EntityBlueprint[],
+    entities: EntityHealthResult[],
     _publisherMap: Map<string, { prefix: string; name: string; color: string; entities: string[] }>
   ): ERDGraphData {
     const entityLogicalNames = new Set(entities.map(bp => bp.entity.LogicalName.toLowerCase()));

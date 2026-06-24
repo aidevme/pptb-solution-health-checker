@@ -83,6 +83,8 @@ Report: **"Memory loaded: [files read]"**
 | `orchestrator` | Sonnet 4.6 | Routes all tasks; start every session here |
 | `architect` | Opus 4.6 | Architecture decisions and data model design; only ONE active at a time |
 | `developer` | Sonnet 4.6 | All implementation — features, bugs, components, Dataverse integration |
+| `component-documenter` | Sonnet 4.6 | TSDoc comments for TypeScript interfaces, components, hooks, and rules |
+| `tester` | Sonnet 4.6 | Build verification, test suite, and smoke testing after implementation |
 | `reviewer` | Haiku 4.5 | Read-only code review for TypeScript, React, Fluent UI v9, and security |
 | `document-updater` | Haiku 4.5 | CHANGELOG, docs/, README, and memory file maintenance |
 | `skills-learner` | Haiku 4.5 | Captures corrections and feedback into memory files |

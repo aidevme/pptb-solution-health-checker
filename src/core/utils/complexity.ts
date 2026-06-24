@@ -1,4 +1,4 @@
-import type { EntityBlueprint, BlueprintResult } from '../types/blueprint.js';
+﻿import type { EntityHealthResult, HealthCheckerResult } from '../types/healthChecker.js';
 
 /**
  * Scores entity complexity from automation density and schema size.
@@ -9,7 +9,7 @@ import type { EntityBlueprint, BlueprintResult } from '../types/blueprint.js';
  * Plugins carry the highest weight because synchronous plugin chains are the primary
  * source of platform-side execution risk.
  */
-export function calculateComplexityScore(entity: EntityBlueprint, _result: BlueprintResult): {
+export function calculateComplexityScore(entity: EntityHealthResult, _result: HealthCheckerResult): {
   total: number;
   level: 'Low' | 'Medium' | 'High';
   breakdown: {

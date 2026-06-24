@@ -2,7 +2,6 @@
 import {
   Text,
   Badge,
-  makeStyles,
   tokens,
   Card,
   Title3,
@@ -13,7 +12,7 @@ import { ChevronDown20Regular, ChevronRight20Regular } from '@fluentui/react-ico
 import type { BusinessRule } from '../core';
 import { filterDescription } from '../utils/descriptionFilter';
 import { EmptyState } from './EmptyState';
-import { useCardRowStyles } from '../styles';
+import { useCardRowStyles, useBusinessRulesListStyles } from '../styles';
 import { useListFilter, type FilterSpec } from '../hooks/useListFilter';
 
 const RULE_STATE_VALUES = ['Active', 'Draft'];
@@ -24,41 +23,6 @@ const RULES_FILTER_SPECS: readonly FilterSpec<BusinessRule>[] = [
   { name: 'scope', getKey: (r) => r.scope },
 ];
 
-const useStyles = makeStyles({
-  ruleRow: {
-    display: 'grid',
-    gridTemplateColumns: `${tokens.spacingHorizontalXXL} minmax(200px, 2fr) minmax(100px, 1fr) auto auto auto`,
-    alignItems: 'start',
-  },
-  sectionHeader: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: tokens.spacingHorizontalS,
-    marginBottom: tokens.spacingVerticalS,
-    paddingLeft: tokens.spacingHorizontalM,
-    borderLeft: `3px solid ${tokens.colorBrandForeground1}`,
-  },
-  conditionItem: {
-    padding: tokens.spacingVerticalS,
-    borderRadius: tokens.borderRadiusMedium,
-    marginBottom: tokens.spacingVerticalXS,
-  },
-  actionItem: {
-    padding: tokens.spacingVerticalS,
-    borderRadius: tokens.borderRadiusMedium,
-    marginBottom: tokens.spacingVerticalXS,
-    display: 'flex',
-    alignItems: 'center',
-    gap: tokens.spacingHorizontalS,
-    borderLeft: '3px solid transparent',
-  },
-  badges: {
-    display: 'flex',
-    gap: tokens.spacingHorizontalS,
-    flexWrap: 'wrap',
-    marginTop: tokens.spacingVerticalM,
-  },
-});
 
 export interface BusinessRulesListProps {
   businessRules: BusinessRule[];
@@ -69,7 +33,7 @@ export function BusinessRulesList({
   businessRules,
   entityLogicalName,
 }: BusinessRulesListProps): JSX.Element {
-  const styles = useStyles();
+  const styles = useBusinessRulesListStyles();
   const shared = useCardRowStyles();
   const [expandedRuleId, setExpandedRuleId] = useState<string | null>(null);
 

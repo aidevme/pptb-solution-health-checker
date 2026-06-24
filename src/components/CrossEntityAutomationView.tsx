@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+﻿import { useMemo, useState } from 'react';
 import {
   Text,
   Title3,
@@ -12,7 +12,7 @@ import {
 import { Info16Regular } from '@fluentui/react-icons';
 import { DetectionCoverageBanner } from './CrossEntityAutomation';
 import type { CrossEntityAnalysisResult } from '../core';
-import type { EntityBlueprint } from '../core';
+import type { EntityHealthResult } from '../core';
 import { SummaryStatsGrid } from './crossEntity/SummaryStatsGrid';
 import { RiskWarningsSection } from './crossEntity/RiskWarningsSection';
 import { PipelineTracesPanel } from './crossEntity/PipelineTracesPanel';
@@ -44,7 +44,7 @@ function buildEntityColorMap(analysis: CrossEntityAnalysisResult): Map<string, s
   );
 }
 
-const useStyles = makeStyles({
+const useCrossEntityAutomationViewStyles = makeStyles({
   container: { display: 'flex', flexDirection: 'column', gap: tokens.spacingVerticalL },
   emptyState: {
     padding: tokens.spacingVerticalXXL,
@@ -60,13 +60,13 @@ const useStyles = makeStyles({
 
 export interface CrossEntityAutomationViewProps {
   analysis: CrossEntityAnalysisResult | undefined;
-  blueprints: EntityBlueprint[];
+  healthcheckers: EntityHealthResult[];
 }
 
 export function CrossEntityAutomationView({
   analysis,
 }: CrossEntityAutomationViewProps): JSX.Element {
-  const styles = useStyles();
+  const styles = useCrossEntityAutomationViewStyles();
   const [subView, setSubView] = useState<string>('traces');
   const entityColorMap = useMemo(() => analysis ? buildEntityColorMap(analysis) : new Map<string, string>(), [analysis]);
 

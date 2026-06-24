@@ -1,14 +1,14 @@
-import type { IDataverseClient } from '../../dataverse/IDataverseClient.js';
+﻿import type { IDataverseClient } from '../../dataverse/IDataverseClient.js';
 import type { FetchLogger } from '../../utils/FetchLogger.js';
-import type { ProgressInfo, StepWarning } from '../../types/blueprint.js';
+import type { ProgressInfo, StepWarning } from '../../types/healthChecker.js';
 import type { ComponentInventoryWithSolutions, WorkflowInventory } from '../../types/components.js';
 import type { EntityMetadata } from '../../types.js';
 
 /**
- * All inputs available to every processor step during blueprint generation.
+ * All inputs available to every processor step during health checker generation.
  *
  * Each step receives the full context; individual steps only read what they need.
- * Outputs are written to the mutable BlueprintAccumulator.
+ * Outputs are written to the mutable HealthCheckerAccumulator.
  */
 export interface ProcessorContext {
   /** Authenticated Dataverse client */
@@ -28,20 +28,20 @@ export interface ProcessorContext {
   /** Fetch logger for audit trail */
   logger: FetchLogger;
   /** Mutable accumulator — steps write their results here */
-  acc: BlueprintAccumulator;
+  acc: HealthCheckerAccumulator;
 }
 
 /**
  * Mutable object that accumulates processor outputs during the generation pipeline.
  * Initialised with empty values before the first step runs.
  */
-export interface BlueprintAccumulator {
+export interface HealthCheckerAccumulator {
   plugins: import('../../types.js').PluginStep[];
   pluginsByEntity: Map<string, import('../../types.js').PluginStep[]>;
-  flows: import('../../types/blueprint.js').Flow[];
-  flowsByEntity: Map<string, import('../../types/blueprint.js').Flow[]>;
-  businessRules: import('../../types/blueprint.js').BusinessRule[];
-  businessRulesByEntity: Map<string, import('../../types/blueprint.js').BusinessRule[]>;
+  flows: import('../../types/healthChecker.js').Flow[];
+  flowsByEntity: Map<string, import('../../types/healthChecker.js').Flow[]>;
+  businessRules: import('../../types/healthChecker.js').BusinessRule[];
+  businessRulesByEntity: Map<string, import('../../types/healthChecker.js').BusinessRule[]>;
   classicWorkflows: import('../../types/classicWorkflow.js').ClassicWorkflow[];
   classicWorkflowsByEntity: Map<string, import('../../types/classicWorkflow.js').ClassicWorkflow[]>;
   businessProcessFlows: import('../../types/businessProcessFlow.js').BusinessProcessFlow[];
@@ -59,27 +59,27 @@ export interface BlueprintAccumulator {
   canvasApps: import('../../types/canvasApp.js').CanvasApp[];
   customPages: import('../../types/customPage.js').CustomPage[];
   modelDrivenApps: import('../../types/modelDrivenApp.js').ModelDrivenApp[];
-  webResources: import('../../types/blueprint.js').WebResource[];
-  webResourcesByType: Map<string, import('../../types/blueprint.js').WebResource[]>;
-  forms: import('../../types/blueprint.js').FormDefinition[];
-  formsByEntity: Map<string, import('../../types/blueprint.js').FormDefinition[]>;
+  webResources: import('../../types/healthChecker.js').WebResource[];
+  webResourcesByType: Map<string, import('../../types/healthChecker.js').WebResource[]>;
+  forms: import('../../types/healthChecker.js').FormDefinition[];
+  formsByEntity: Map<string, import('../../types/healthChecker.js').FormDefinition[]>;
   /** Warnings accumulated across all steps for the caller */
   warnings: string[];
 }
 
 /**
- * A single named step in the blueprint generation pipeline.
+ * A single named step in the health checker generation pipeline.
  *
  * Each step receives the full ProcessorContext and writes its results into
  * context.acc. Steps must not throw — they should catch errors internally
  * and push to context.stepWarnings.
  *
  * @remarks
- * The no-throw contract keeps {@link BlueprintGenerator.generate} from
+ * The no-throw contract keeps {@link HealthCheckerGenerator.generate} from
  * aborting the entire run when a single component type fails.  A step that
  * catches an error and pushes a warning still completes with partial results;
  * a step that throws causes all subsequent steps to be skipped and the
- * blueprint to fail entirely.
+ * health checker to fail entirely.
  */
 export interface ProcessorStep {
   /** Human-readable name shown in progress messages */
@@ -91,7 +91,7 @@ export interface ProcessorStep {
 /**
  * Creates a fully-initialised empty accumulator.
  */
-export function createAccumulator(): BlueprintAccumulator {
+export function createAccumulator(): HealthCheckerAccumulator {
   return {
     plugins: [],
     pluginsByEntity: new Map(),

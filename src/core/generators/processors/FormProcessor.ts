@@ -1,6 +1,6 @@
-import type { IDataverseClient } from '../../dataverse/IDataverseClient.js';
+﻿import type { IDataverseClient } from '../../dataverse/IDataverseClient.js';
 import type { FetchLogger } from '../../utils/FetchLogger.js';
-import type { ProgressInfo, StepWarning, FormDefinition } from '../../types/blueprint.js';
+import type { ProgressInfo, StepWarning, FormDefinition } from '../../types/healthChecker.js';
 import type { EntityMetadata } from '../../types.js';
 import { FormDiscovery } from '../../discovery/FormDiscovery.js';
 import { normalizeGuid, normalizeBatch } from '../../utils/guid.js';

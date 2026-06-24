@@ -1,5 +1,5 @@
-import type { IDataverseClient } from '../dataverse/IDataverseClient.js';
-import type { FormDefinition, FormEventHandler } from '../types/blueprint.js';
+﻿import type { IDataverseClient } from '../dataverse/IDataverseClient.js';
+import type { FormDefinition, FormEventHandler } from '../types/healthChecker.js';
 import type { FetchLogger } from '../utils/FetchLogger.js';
 import { withAdaptiveBatch } from '../utils/withAdaptiveBatch.js';
 import { buildOrFilter } from '../utils/odata.js';

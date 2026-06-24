@@ -364,7 +364,7 @@ sub-components are purely presentational or single-concern.
 
 React components must never instantiate PptbDataverseClient, any Discovery class,
 any Generator class, or any Reporter class directly.
-All data loading goes through a hook (useScopeData, useBlueprint, etc.).
+All data loading goes through a hook (useScopeData, useHealthChecker, etc.).
 
 Violation (banned):
   const client = new PptbDataverseClient(window.dataverseAPI); // inside a component
@@ -386,7 +386,7 @@ Reference correct examples: FlowsList.tsx, BusinessRulesList.tsx, PluginsList.ts
 
 Use discriminated union: phase: 'idle' | 'generating' | 'done' | 'error'
 Never use separate isLoading: boolean alongside error state.
-Reference: useBlueprint.ts
+Reference: useHealthChecker.ts
 
 ---
 

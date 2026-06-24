@@ -1,4 +1,4 @@
-import type { AttributeMetadata } from '../types/blueprint.js';
+﻿import type { AttributeMetadata } from '../types/healthChecker.js';
 
 /**
  * Common system fields that exist on most entities

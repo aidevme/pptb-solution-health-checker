@@ -1,6 +1,6 @@
-import type { IDataverseClient } from '../../dataverse/IDataverseClient.js';
+﻿import type { IDataverseClient } from '../../dataverse/IDataverseClient.js';
 import type { FetchLogger } from '../../utils/FetchLogger.js';
-import type { ProgressInfo, StepWarning } from '../../types/blueprint.js';
+import type { ProgressInfo, StepWarning } from '../../types/healthChecker.js';
 import { AppDiscovery } from '../../discovery/AppDiscovery.js';
 import type { CanvasApp } from '../../types/canvasApp.js';
 import type { CustomPage } from '../../types/customPage.js';

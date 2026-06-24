@@ -1,6 +1,6 @@
-import type { IDataverseClient } from '../../dataverse/IDataverseClient.js';
+﻿import type { IDataverseClient } from '../../dataverse/IDataverseClient.js';
 import type { FetchLogger } from '../../utils/FetchLogger.js';
-import type { ProgressInfo, StepWarning } from '../../types/blueprint.js';
+import type { ProgressInfo, StepWarning } from '../../types/healthChecker.js';
 import { ClassicWorkflowDiscovery } from '../../discovery/ClassicWorkflowDiscovery.js';
 import { WorkflowMigrationAnalyzer } from '../../analyzers/WorkflowMigrationAnalyzer.js';
 import type { ClassicWorkflow } from '../../types/classicWorkflow.js';

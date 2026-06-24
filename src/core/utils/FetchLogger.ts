@@ -1,6 +1,6 @@
 /**
  * Fetch diagnostics logger.
- * Records every batched API call made during blueprint generation —
+ * Records every batched API call made during health checker generation —
  * status, duration, retry count, batch-size reductions, and errors.
  * Consumed by FetchDiagnosticsView after (or during) generation.
  */
@@ -43,7 +43,7 @@ export interface FetchSummary {
 }
 
 /**
- * Append-only log of every batched Dataverse API call made during a blueprint generation run.
+ * Append-only log of every batched Dataverse API call made during a health checker generation run.
  *
  * @remarks
  * Errors thrown by live subscribers are swallowed so a misbehaving UI listener cannot

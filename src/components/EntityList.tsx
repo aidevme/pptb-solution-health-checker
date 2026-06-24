@@ -10,7 +10,7 @@ import {
 import { FilterBar, FilterGroup } from './FilterBar';
 import { useCardRowStyles } from '../styles';
 import { Database24Regular, ChevronDown20Regular, ChevronRight20Regular } from '@fluentui/react-icons';
-import type { EntityBlueprint, ClassicWorkflow, BusinessProcessFlow } from '../core';
+import type { EntityHealthResult, ClassicWorkflow, BusinessProcessFlow } from '../core';
 import { SchemaView } from './SchemaView';
 import { EmptyState } from './EmptyState';
 import { filterDescription } from '../utils/descriptionFilter';
@@ -177,20 +177,20 @@ const FLAG_CONFIGS: FlagConfig[] = [
 ];
 
 export interface EntityListProps {
-  blueprints: EntityBlueprint[];
+  healthCheckers: EntityHealthResult[];
   classicWorkflows?: ClassicWorkflow[];
   businessProcessFlows?: BusinessProcessFlow[];
 }
 
 const getEntityComplexity = (
-  blueprint: EntityBlueprint,
+  healthChecker: EntityHealthResult,
   classicWfCount: number,
   bpfCount: number,
 ): 'High' | 'Medium' | 'Low' => {
-  const fieldCount = blueprint.entity.Attributes?.length ?? 0;
-  const pluginCount = blueprint.plugins.length;
-  const flowCount = blueprint.flows.length;
-  const businessRuleCount = blueprint.businessRules.length;
+  const fieldCount = healthChecker.entity.Attributes?.length ?? 0;
+  const pluginCount = healthChecker.plugins.length;
+  const flowCount = healthChecker.flows.length;
+  const businessRuleCount = healthChecker.businessRules.length;
 
   if (fieldCount >= 50 || pluginCount >= 5 || flowCount >= 5 || businessRuleCount >= 5 || classicWfCount >= 3 || bpfCount >= 3) {
     return 'High';
@@ -206,7 +206,7 @@ const getPublisherPrefix = (schemaName: string): string => {
   return idx > 0 ? schemaName.substring(0, idx) : '';
 };
 
-export function EntityList({ blueprints, classicWorkflows = [], businessProcessFlows = [] }: EntityListProps) {
+export function EntityList({ healthCheckers, classicWorkflows = [], businessProcessFlows = [] }: EntityListProps) {
   const styles = useStyles();
   const shared = useCardRowStyles();
   const [searchQuery, setSearchQuery] = useState('');
@@ -216,8 +216,8 @@ export function EntityList({ blueprints, classicWorkflows = [], businessProcessF
 
   // Get list of all entity logical names in scope
   const entitiesInScope = useMemo(() => {
-    return blueprints.map(bp => bp.entity.LogicalName);
-  }, [blueprints]);
+    return healthCheckers.map(hc => hc.entity.LogicalName);
+  }, [healthCheckers]);
 
   // Precompute per-entity counts for classicWorkflows and BPFs once (O(n))
   // so getEntityFlagCounts can do O(1) map lookups instead of O(n) filters per entity.
@@ -237,17 +237,17 @@ export function EntityList({ blueprints, classicWorkflows = [], businessProcessF
     return map;
   }, [businessProcessFlows]);
 
-  // Compute entity flag counts per blueprint (Map<FlagType, count>)
+  // Compute entity flag counts per healthChecker (Map<FlagType, count>)
   const getEntityFlagCounts = useMemo(() => {
-    return (blueprint: EntityBlueprint): Map<FlagType, number> => {
+    return (healthChecker: EntityHealthResult): Map<FlagType, number> => {
       const counts = new Map<FlagType, number>();
-      if (blueprint.plugins.length > 0) counts.set('plugins', blueprint.plugins.length);
-      if (blueprint.forms.length > 0) counts.set('forms', blueprint.forms.length);
-      if (blueprint.businessRules.length > 0) counts.set('businessRules', blueprint.businessRules.length);
-      if (blueprint.flows.length > 0) counts.set('flows', blueprint.flows.length);
-      const cwCount = classicWorkflowCountByEntity.get(blueprint.entity.LogicalName) ?? 0;
+      if (healthChecker.plugins.length > 0) counts.set('plugins', healthChecker.plugins.length);
+      if (healthChecker.forms.length > 0) counts.set('forms', healthChecker.forms.length);
+      if (healthChecker.businessRules.length > 0) counts.set('businessRules', healthChecker.businessRules.length);
+      if (healthChecker.flows.length > 0) counts.set('flows', healthChecker.flows.length);
+      const cwCount = classicWorkflowCountByEntity.get(healthChecker.entity.LogicalName) ?? 0;
       if (cwCount > 0) counts.set('classicWorkflows', cwCount);
-      const bpfCount = bpfCountByEntity.get(blueprint.entity.LogicalName) ?? 0;
+      const bpfCount = bpfCountByEntity.get(healthChecker.entity.LogicalName) ?? 0;
       if (bpfCount > 0) counts.set('bpfs', bpfCount);
       return counts;
     };
@@ -256,11 +256,11 @@ export function EntityList({ blueprints, classicWorkflows = [], businessProcessF
   // Which flag types are present in at least one entity (for filter bar)
   const availableFlags = useMemo<FlagType[]>(() => {
     const present = new Set<FlagType>();
-    for (const bp of blueprints) {
-      getEntityFlagCounts(bp).forEach((_, k) => present.add(k));
+    for (const hc of healthCheckers) {
+      getEntityFlagCounts(hc).forEach((_, k) => present.add(k));
     }
     return FLAG_CONFIGS.map(c => c.key).filter(k => present.has(k));
-  }, [blueprints, getEntityFlagCounts]);
+  }, [healthCheckers, getEntityFlagCounts]);
 
   const toggleFilter = (flag: FlagType) => {
     setActiveFilters(prev => {
@@ -271,15 +271,14 @@ export function EntityList({ blueprints, classicWorkflows = [], businessProcessF
     });
   };
 
-  // Filter and sort blueprints
-  const filteredBlueprints = useMemo(() => {
+  const filteredHealthCheckers = useMemo(() => {
     const query = searchQuery.toLowerCase().trim();
 
-    let filtered = blueprints;
+    let filtered = healthCheckers;
 
     if (query) {
-      filtered = blueprints.filter((blueprint) => {
-        const entity = blueprint.entity;
+      filtered = healthCheckers.filter((healthChecker) => {
+        const entity = healthChecker.entity;
         const displayName = entity.DisplayName?.UserLocalizedLabel?.Label || '';
         const logicalName = entity.LogicalName || '';
         const publisherPrefix = getPublisherPrefix(entity.SchemaName || '');
@@ -315,22 +314,22 @@ export function EntityList({ blueprints, classicWorkflows = [], businessProcessF
       const nameB = b.entity.DisplayName?.UserLocalizedLabel?.Label || b.entity.LogicalName;
       return nameA.localeCompare(nameB);
     });
-  }, [blueprints, searchQuery, activeFilters, matchMode, getEntityFlagCounts]);
+  }, [healthCheckers, searchQuery, activeFilters, matchMode, getEntityFlagCounts]);
 
   const toggleExpand = (entityId: string) => {
     setExpandedEntityId(expandedEntityId === entityId ? null : entityId);
   };
 
-  const renderEntityDetails = (blueprint: EntityBlueprint) => {
-    const entity = blueprint.entity;
+  const renderEntityDetails = (healthChecker: EntityHealthResult) => {
+    const entity = healthChecker.entity;
     const publisherPrefix = getPublisherPrefix(entity.SchemaName || '');
     const fieldCount = entity.Attributes?.length ?? 0;
-    const pluginCount = blueprint.plugins.length;
-    const flowCount = blueprint.flows.length;
-    const businessRuleCount = blueprint.businessRules.length;
+    const pluginCount = healthChecker.plugins.length;
+    const flowCount = healthChecker.flows.length;
+    const businessRuleCount = healthChecker.businessRules.length;
     const classicWfCount = classicWorkflowCountByEntity.get(entity.LogicalName) ?? 0;
     const bpfCount = bpfCountByEntity.get(entity.LogicalName) ?? 0;
-    const complexity = getEntityComplexity(blueprint, classicWfCount, bpfCount);
+    const complexity = getEntityComplexity(healthChecker, classicWfCount, bpfCount);
     const complexityTooltip =
       `Complexity = attributes (${fieldCount}) + plugins (${pluginCount}) + flows (${flowCount}) + ` +
       `business rules (${businessRuleCount}) + classic workflows (${classicWfCount}) + BPFs (${bpfCount})`;
@@ -376,7 +375,7 @@ export function EntityList({ blueprints, classicWorkflows = [], businessProcessF
             </div>
           </div>
         </div>
-        <SchemaView blueprint={blueprint} classicWorkflows={classicWorkflows} entitiesInScope={entitiesInScope} />
+        <SchemaView healthchecker={healthChecker} classicWorkflows={classicWorkflows} entitiesInScope={entitiesInScope} />
       </div>
     );
   };
@@ -387,9 +386,9 @@ export function EntityList({ blueprints, classicWorkflows = [], businessProcessF
         searchValue={searchQuery}
         onSearchChange={setSearchQuery}
         searchPlaceholder="Search entities..."
-        filteredCount={filteredBlueprints.length}
-        totalCount={blueprints.length}
-        itemLabel={blueprints.length === 1 ? 'entity' : 'entities'}
+        filteredCount={filteredHealthCheckers.length}
+        totalCount={healthCheckers.length}
+        itemLabel={healthCheckers.length === 1 ? 'entity' : 'entities'}
         style={{ flexShrink: 0 }}
       >
         {availableFlags.length > 0 && (
@@ -448,18 +447,18 @@ export function EntityList({ blueprints, classicWorkflows = [], businessProcessF
       </FilterBar>
 
       <div className={styles.listContainer}>
-        {filteredBlueprints.length === 0 ? (
+        {filteredHealthCheckers.length === 0 ? (
           searchQuery
             ? <EmptyState type="search" />
             : <EmptyState type="generic" title="No Entities Found" message="No entities were found for this selection." />
         ) : (
-          filteredBlueprints.map((blueprint) => {
-            const entity = blueprint.entity;
+          filteredHealthCheckers.map((healthChecker) => {
+            const entity = healthChecker.entity;
             const isExpanded = expandedEntityId === entity.MetadataId;
             const displayName = entity.DisplayName?.UserLocalizedLabel?.Label || entity.LogicalName || 'Unknown Entity';
             const description = filterDescription(entity.Description?.UserLocalizedLabel?.Label);
             const attributeCount = entity.Attributes?.length || 0;
-            const entityFlagCounts = getEntityFlagCounts(blueprint);
+            const entityFlagCounts = getEntityFlagCounts(healthChecker);
             const publisherPrefix = getPublisherPrefix(entity.SchemaName || '');
 
             return (
@@ -528,7 +527,7 @@ export function EntityList({ blueprints, classicWorkflows = [], businessProcessF
                     </div>
                   )}
                 </div>
-                {isExpanded && renderEntityDetails(blueprint)}
+                {isExpanded && renderEntityDetails(healthChecker)}
               </div>
             );
           })

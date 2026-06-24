@@ -15,7 +15,7 @@ import { useCardRowStyles } from '../styles';
 
 const CONN_STATUS_VALUES = ['Connected', 'Not Connected'];
 
-const useStyles = makeStyles({
+const useConnectionReferencesListStyles = makeStyles({
   listContainer: {
     marginTop: tokens.spacingVerticalL,
   },
@@ -43,7 +43,7 @@ interface ConnectionReferencesListProps {
 }
 
 export function ConnectionReferencesList({ connectionReferences }: ConnectionReferencesListProps) {
-  const styles = useStyles();
+  const styles = useConnectionReferencesListStyles();
   const shared = useCardRowStyles();
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');

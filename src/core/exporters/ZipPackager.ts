@@ -1,8 +1,8 @@
-import JSZip from 'jszip';
-import type { MarkdownExport } from '../types/blueprint.js';
+﻿import JSZip from 'jszip';
+import type { MarkdownExport } from '../types/healthChecker.js';
 
 /**
- * Builds a ZIP archive from one or more blueprint export formats using JSZip.
+ * Builds a ZIP archive from one or more health checker export formats using JSZip.
  *
  * @remarks
  * The archive is generated asynchronously with DEFLATE level 6 compression.
@@ -14,8 +14,8 @@ import type { MarkdownExport } from '../types/blueprint.js';
  * ZIP structure when all formats are included:
  * ```
  * ├── markdown/   (mirrors MarkdownExport.files map)
- * ├── blueprint.json
- * ├── blueprint.html
+ * ├── healthChecker.json
+ * ├── healthChecker.html
  * └── metadata.txt
  * ```
  */
@@ -26,7 +26,7 @@ export class ZipPackager {
    * @param json - Optional pretty-printed JSON string from {@link JsonReporter}.
    * @param html - Optional self-contained HTML string from {@link HtmlReporter}.
    */
-  async packageBlueprint(
+  async packageHealthChecker(
     markdown?: MarkdownExport,
     json?: string,
     html?: string
@@ -46,12 +46,12 @@ export class ZipPackager {
 
     // Add JSON if provided
     if (json) {
-      zip.file('blueprint.json', json);
+      zip.file('healthChecker.json', json);
     }
 
     // Add HTML if provided
     if (html) {
-      zip.file('blueprint.html', html);
+      zip.file('healthChecker.html', html);
     }
 
     // Add metadata file
@@ -78,7 +78,7 @@ export class ZipPackager {
   ): string {
     const lines: string[] = [];
 
-    lines.push('Power Platform Solution Blueprint - Export Metadata');
+    lines.push('Power Platform Solution Health Checker - Export Metadata');
     lines.push('='.repeat(60));
     lines.push('');
     lines.push(`Generated: ${timestamp.toISOString()}`);
@@ -114,11 +114,11 @@ export class ZipPackager {
     }
 
     if (json) {
-      lines.push('blueprint.json');
+      lines.push('healthChecker.json');
     }
 
     if (html) {
-      lines.push('blueprint.html');
+      lines.push('healthChecker.html');
     }
 
     lines.push('metadata.txt');
@@ -128,10 +128,10 @@ export class ZipPackager {
     lines.push('- Extract ZIP to view all files');
     lines.push('- Markdown: Upload to Azure DevOps Wiki or GitHub');
     lines.push('- JSON: Use for baselines, automation, or programmatic analysis');
-    lines.push('- HTML: Open blueprint.html in any modern web browser');
+    lines.push('- HTML: Open healthChecker.html in any modern web browser');
     lines.push('');
     lines.push('For more information, visit:');
-    lines.push('https://github.com/anthropics/power-platform-solution-blueprint');
+    lines.push('https://github.com/anthropics/power-platform-solution-health-checker');
 
     return lines.join('\n');
   }

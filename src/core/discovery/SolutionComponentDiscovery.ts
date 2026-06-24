@@ -1,4 +1,4 @@
-import type { IDataverseClient, QueryOptions, QueryResult } from '../dataverse/IDataverseClient.js';
+﻿import type { IDataverseClient, QueryOptions, QueryResult } from '../dataverse/IDataverseClient.js';
 import type { FetchLogger } from '../utils/FetchLogger.js';
 import { withAdaptiveBatch } from '../utils/withAdaptiveBatch.js';
 import { ComponentType, WorkflowCategory, type ComponentInventory, type ComponentInventoryWithSolutions, type WorkflowInventory, type WorkflowInventoryWithSolutions } from '../types/components.js';
@@ -679,7 +679,7 @@ export class SolutionComponentDiscovery {
       }
 
       // For entities and attributes, we'll use the metadata API via EntityDiscovery
-      // These will be handled by the BlueprintGenerator's entity discovery process
+      // These will be handled by the HealthCheckerGenerator's entity discovery process
 
       // For Default Solution, we don't have solution membership tracking
       return {

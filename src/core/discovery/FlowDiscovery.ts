@@ -1,5 +1,5 @@
-import type { IDataverseClient } from '../dataverse/IDataverseClient.js';
-import type { Flow } from '../types/blueprint.js';
+﻿import type { IDataverseClient } from '../dataverse/IDataverseClient.js';
+import type { Flow } from '../types/healthChecker.js';
 import type { FetchLogger } from '../utils/FetchLogger.js';
 import type { IDiscoverer } from './IDiscoverer.js';
 import { FlowDefinitionParser } from '../parsers/FlowDefinitionParser.js';

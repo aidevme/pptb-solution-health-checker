@@ -42,6 +42,7 @@
   "dependencies": {
     "@fluentui/react-components": "^9.54.0",
     "@fluentui/react-icons": "^2.0.244",
+    "@fluentui/react-motion-components-preview": "^0.15.5",
     "cytoscape": "^3.34.0",
     "jszip": "^3.10.1",
     "react": "^18.2.0",

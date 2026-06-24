@@ -3,61 +3,11 @@ import {
   Badge,
   Card,
   Title3,
-  makeStyles,
   tokens,
 } from '@fluentui/react-components';
 import { Key20Regular } from '@fluentui/react-icons';
 import type { EntityKey } from '../core';
-
-const useStyles = makeStyles({
-  container: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: tokens.spacingVerticalL,
-  },
-  section: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: tokens.spacingVerticalM,
-  },
-  primaryKeyCard: {
-    padding: tokens.spacingVerticalL,
-    backgroundColor: tokens.colorBrandBackground2,
-  },
-  primaryKeyContent: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: tokens.spacingHorizontalM,
-  },
-  keyIcon: {
-    fontSize: '32px',
-    color: tokens.colorBrandForeground1,
-  },
-  keysList: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: tokens.spacingVerticalS,
-  },
-  keyCard: {
-    padding: tokens.spacingVerticalM,
-  },
-  keyHeader: {
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    marginBottom: tokens.spacingVerticalS,
-  },
-  keyAttributes: {
-    display: 'flex',
-    gap: tokens.spacingHorizontalS,
-    flexWrap: 'wrap',
-  },
-  emptyState: {
-    padding: tokens.spacingVerticalXXL,
-    textAlign: 'center',
-    color: tokens.colorNeutralForeground3,
-  },
-});
+import { useAlternateKeysViewStyles } from '../styles';
 
 export interface AlternateKeysViewProps {
   keys: EntityKey[];
@@ -65,7 +15,7 @@ export interface AlternateKeysViewProps {
 }
 
 export function AlternateKeysView({ keys, primaryIdAttribute }: AlternateKeysViewProps) {
-  const styles = useStyles();
+  const styles = useAlternateKeysViewStyles();
 
   const getIndexStatusBadge = (status?: string) => {
     switch (status) {

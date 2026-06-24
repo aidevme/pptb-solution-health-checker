@@ -1,4 +1,4 @@
-import type { ExecutionPipeline, ExecutionStep, PerformanceRisk } from '../types/blueprint.js';
+﻿import type { ExecutionPipeline, ExecutionStep, PerformanceRisk } from '../types/healthChecker.js';
 
 /**
  * Inspects an {@link ExecutionPipeline} and flags heuristic performance risks.

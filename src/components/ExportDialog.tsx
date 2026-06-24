@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+﻿import { useState, useMemo } from 'react';
 import {
   Dialog,
   DialogSurface,
@@ -15,7 +15,7 @@ import {
   MessageBarBody,
 } from '@fluentui/react-components';
 import { Dismiss24Regular } from '@fluentui/react-icons';
-import type { BlueprintResult } from '../core';
+import type { HealthCheckerResult } from '../core';
 import { estimateMarkdownSize, estimateJsonSize, estimateHtmlSize, formatBytes } from '../utils/sizeEstimator';
 import { ExportProgressOverlay } from './ExportProgressOverlay';
 import { useExport } from '../hooks/useExport';
@@ -66,7 +66,7 @@ const useStyles = makeStyles({
 
 export interface ExportDialogProps {
   isOpen: boolean;
-  result: BlueprintResult;
+  result: HealthCheckerResult;
   onClose: () => void;
 }
 
@@ -143,7 +143,7 @@ export function ExportDialog({ isOpen, result, onClose }: ExportDialogProps) {
                 />
               }
             >
-              Export Solution Blueprint
+              Export Solution Health Checker
             </DialogTitle>
 
             <DialogContent>
@@ -195,7 +195,7 @@ export function ExportDialog({ isOpen, result, onClose }: ExportDialogProps) {
                     />
                   </div>
                   <div className={styles.formatDescription}>
-                    Full blueprint data - use for baselines and automation
+                    Full health checker data - use for baselines and automation
                   </div>
                   <div className={styles.formatPreview}>
                     ~{formatBytes(estimates.json)}

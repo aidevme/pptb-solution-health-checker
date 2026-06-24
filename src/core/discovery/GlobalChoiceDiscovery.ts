@@ -1,7 +1,7 @@
-import type { IDataverseClient } from '../dataverse/IDataverseClient.js';
+﻿import type { IDataverseClient } from '../dataverse/IDataverseClient.js';
 import type { GlobalChoice, GlobalChoiceOption } from '../types/globalChoice.js';
 import type { IDiscoverer } from './IDiscoverer.js';
-import type { ProgressPhase } from '../types/blueprint.js';
+import type { ProgressPhase } from '../types/healthChecker.js';
 import type { FetchLogger } from '../utils/FetchLogger.js';
 import { withAdaptiveBatch } from '../utils/withAdaptiveBatch.js';
 

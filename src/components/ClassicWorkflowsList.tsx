@@ -33,7 +33,7 @@ const WORKFLOWS_FILTER_SPECS: readonly FilterSpec<ClassicWorkflow>[] = [
   { name: 'state', getKey: (w) => w.state },
 ];
 
-const useStyles = makeStyles({
+const useClassicWorkflowsListStyles = makeStyles({
   warning: {
     padding: tokens.spacingVerticalM,
     backgroundColor: tokens.colorPaletteYellowBackground1,
@@ -77,7 +77,7 @@ const complexityColor = (c: string | undefined): 'success' | 'warning' | 'danger
 };
 
 export function ClassicWorkflowsList({ workflows }: ClassicWorkflowsListProps) {
-  const styles = useStyles();
+  const styles = useClassicWorkflowsListStyles();
   const shared = useCardRowStyles();
   const [expandedId, setExpandedId] = useState<string | null>(null);
 

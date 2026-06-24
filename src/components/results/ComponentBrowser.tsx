@@ -1,15 +1,28 @@
-import { Tab, TabList, Tooltip } from '@fluentui/react-components';
+﻿import { Tab, TabList, Tooltip } from '@fluentui/react-components';
 import type { SelectTabData, SelectTabEvent } from '@fluentui/react-components';
-import type { BlueprintResult } from '../../core';
+import type { HealthCheckerResult } from '../../core';
 import { COMPONENT_TABS } from '../ComponentTabRegistry';
 import { useComponentBrowserStyles } from '../../styles';
 
 export interface ComponentBrowserProps {
-  result: BlueprintResult;
+  result: HealthCheckerResult;
   selectedTab: string;
+  /** Must be a {@link ComponentTabDefinition} key — passing an unknown key leaves the content area empty. */
   onTabSelect: (key: string) => void;
 }
 
+/**
+ * Renders the horizontal tab strip and content panel for the component detail browser.
+ *
+ * @remarks
+ * Tab labels collapse to count-only when not selected, and expand to `"Label (N)"` when
+ * selected. This keeps the strip compact across the full tab set while surfacing context
+ * for the active tab without requiring a separate count badge.
+ *
+ * Tabs whose {@link ComponentTabDefinition.hidden} predicate returns `true` for the current
+ * result are omitted from both the strip and the content area — their `count` is never
+ * surfaced here (only in {@link ComponentSummaryCards}).
+ */
 export function ComponentBrowser({
   result,
   selectedTab,

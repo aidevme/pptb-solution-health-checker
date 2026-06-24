@@ -1,5 +1,5 @@
-import type { PluginStep } from '../types.js';
-import type { Flow, BusinessRule, ExecutionPipeline, ExecutionStep, FormDefinition } from '../types/blueprint.js';
+﻿import type { PluginStep } from '../types.js';
+import type { Flow, BusinessRule, ExecutionPipeline, ExecutionStep, FormDefinition } from '../types/healthChecker.js';
 
 /**
  * Calculates the execution pipeline for a single entity event (Create, Update, Delete).

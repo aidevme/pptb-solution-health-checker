@@ -1,6 +1,6 @@
 # HTML Reporter
 
-The HTML Reporter generates a single-page, self-contained, interactive HTML document for the Power Platform Solution Blueprint.
+The HTML Reporter generates a single-page, self-contained, interactive HTML document for the Power Platform Solution Health Checker.
 
 ## Features
 
@@ -15,14 +15,14 @@ The HTML Reporter generates a single-page, self-contained, interactive HTML docu
 ## Usage
 
 ```typescript
-import { HtmlReporter, BlueprintResult } from '@ppsb/core';
+import { HtmlReporter, HealthCheckerResult } from '@ppsb/core';
 
-// After generating a blueprint
+// After generating a healthchecker
 const htmlReporter = new HtmlReporter();
-const htmlContent = htmlReporter.generate(blueprintResult);
+const htmlContent = htmlReporter.generate(HealthCheckerResult);
 
 // Save to file or display in browser
-await window.toolboxAPI.fileSystem.writeFile('blueprint.html', htmlContent);
+await window.toolboxAPI.fileSystem.writeFile('healthchecker.html', htmlContent);
 ```
 
 ## HTML Structure
@@ -158,7 +158,7 @@ await window.toolboxAPI.fileSystem.writeFile('blueprint.html', htmlContent);
 
 ## File Size
 
-Typical blueprint HTML file size:
+Typical health checker HTML file size:
 - Small (1-5 entities): ~100-200 KB
 - Medium (10-20 entities): ~300-500 KB
 - Large (50+ entities): ~1-2 MB

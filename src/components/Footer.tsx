@@ -1,5 +1,5 @@
 import { makeStyles, tokens, Text, Link } from '@fluentui/react-components';
-import { Open20Regular } from '@fluentui/react-icons';
+import { Open20Regular, Document20Regular } from '@fluentui/react-icons';
 import packageJson from '../../package.json';
 
 const useStyles = makeStyles({
@@ -52,6 +52,15 @@ export function Footer() {
           AIDEVME
         </Link>
       </Text>
+      <Text className={styles.text}>•</Text>
+      <Link
+        onClick={(e) => { e.preventDefault(); openExternal('https://github.com/aidevme/power-platform-solution-health-checker'); }}
+        href="https://github.com/aidevme/power-platform-solution-health-checker"
+        className={styles.iconLink}
+      >
+        <Document20Regular />
+        <span>Documentation</span>
+      </Link>
       <Text className={styles.text}>•</Text>
       <Link
         onClick={(e) => { e.preventDefault(); openExternal('https://github.com/aidevme/power-platform-solution-health-checker'); }}

@@ -1,10 +1,10 @@
-import type {
+﻿import type {
   SolutionDistribution,
   ComponentCounts,
   SharedComponent,
   SolutionDependency,
-  BlueprintResult,
-} from '../types/blueprint.js';
+  HealthCheckerResult,
+} from '../types/healthChecker.js';
 import type { Solution } from '../types.js';
 import { normalizeGuid } from '../utils/guid.js';
 
@@ -32,7 +32,7 @@ export class SolutionDistributionAnalyzer {
    */
   analyzeSolutionDistribution(
     solutions: Solution[],
-    result: BlueprintResult,
+    result: HealthCheckerResult,
     solutionComponentMap?: Map<string, Set<string>>
   ): SolutionDistribution[] {
     const distributions: SolutionDistribution[] = [];
@@ -65,9 +65,9 @@ export class SolutionDistributionAnalyzer {
     return distributions.sort((a, b) => a.solutionName.localeCompare(b.solutionName));
   }
 
-  private countComponentsInSolution(_solution: Solution, _result: BlueprintResult): ComponentCounts {
+  private countComponentsInSolution(_solution: Solution, _result: HealthCheckerResult): ComponentCounts {
     // Accurate per-solution counting requires solutionComponentMap, which is always provided
-    // when called from BlueprintGenerator. This fallback returns zeros to avoid showing
+    // when called from HealthCheckerGenerator. This fallback returns zeros to avoid showing
     // misleading totals (e.g. all components from all solutions attributed to one solution).
     const counts: ComponentCounts = {
       entities: 0,
@@ -94,7 +94,7 @@ export class SolutionDistributionAnalyzer {
 
   private countComponentsInSolutionAccurate(
     solution: Solution,
-    result: BlueprintResult,
+    result: HealthCheckerResult,
     solutionComponentMap: Map<string, Set<string>>
   ): ComponentCounts {
     const solutionId = normalizeGuid(solution.solutionid);
@@ -183,7 +183,7 @@ export class SolutionDistributionAnalyzer {
   private identifySharedComponents(
     _solution: Solution,
     _allSolutions: Solution[],
-    _result: BlueprintResult
+    _result: HealthCheckerResult
   ): SharedComponent[] {
     // Deferred to a future release. Implementing this accurately requires a
     // reverse index (componentId → solutionIds[]) built during discovery.
@@ -195,7 +195,7 @@ export class SolutionDistributionAnalyzer {
   private identifyDependencies(
     solution: Solution,
     allSolutions: Solution[],
-    result: BlueprintResult
+    result: HealthCheckerResult
   ): SolutionDependency[] {
     const dependencies: SolutionDependency[] = [];
 

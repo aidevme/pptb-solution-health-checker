@@ -20,7 +20,7 @@ Complete guide for using Power Platform Solution Blueprint (PPSB) v1.1.1
 
 ## 1. Introduction
 
-PPSB (Power Platform Solution Blueprint) generates comprehensive architectural documentation for your Power Platform systems automatically. Instead of spending weeks manually documenting entities, plugins, flows, and dependencies, PPSB discovers everything in minutes and produces production-ready documentation.
+PPSB (Power Platform Solution Health Checker) generates comprehensive architectural documentation for your Power Platform systems automatically. Instead of spending weeks manually documenting entities, plugins, flows, and dependencies, PPSB discovers everything in minutes and produces production-ready documentation.
 
 ###What PPSB Does
 

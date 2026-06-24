@@ -1,5 +1,5 @@
-/**
- * HTML Reporter - Generates single-page interactive HTML blueprint
+﻿/**
+ * HTML Reporter - Generates single-page interactive HTML health checker report
  *
  * Features:
  * - Self-contained HTML file (no external dependencies except Mermaid CDN)
@@ -17,7 +17,7 @@
  * - Documentation website
  * - Quick review and navigation
  */
-import type { BlueprintResult } from '../types/blueprint.js';
+import type { HealthCheckerResult } from '../types/healthChecker.js';
 import { HtmlTemplates } from './html/HtmlTemplates.js';
 import { HTML_TEMPLATE_SECTIONS } from './html/sections/index.js';
 import type { IReporter } from './IReporter.js';
@@ -30,7 +30,7 @@ export class HtmlReporter implements IReporter<string> {
   }
 
   /**
-   * Generate complete HTML blueprint document.
+   * Generate complete HTML health checker document.
    *
    * Structural wrappers (head, nav, header, footer, scripts) are rendered directly.
    * Content sections are driven by the HTML_TEMPLATE_SECTIONS registry — each section
@@ -39,10 +39,10 @@ export class HtmlReporter implements IReporter<string> {
    * To add a new section: implement IHtmlTemplateSection and append to
    * src/core/reporters/html/sections/index.ts — no changes here required (Open/Closed).
    *
-   * @param result Complete blueprint result
+   * @param result Complete health checker result
    * @returns Self-contained HTML string
    */
-  generate(result: BlueprintResult): string {
+  generate(result: HealthCheckerResult): string {
     const head = this.templates.htmlHead(result);
     const nav = this.templates.htmlNavigation();
     const header = this.templates.htmlHeader(result.metadata);

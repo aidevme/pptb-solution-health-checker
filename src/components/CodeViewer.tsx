@@ -7,7 +7,7 @@ import {
 } from '@fluentui/react-components';
 import { Copy24Regular, ChevronDown20Regular, ChevronRight20Regular } from '@fluentui/react-icons';
 
-const useStyles = makeStyles({
+const useCodeViewerStyles = makeStyles({
   container: {
     display: 'flex',
     flexDirection: 'column',
@@ -55,7 +55,7 @@ export interface CodeViewerProps {
 }
 
 export function CodeViewer({ content, language = 'javascript', maxLines = 50 }: CodeViewerProps) {
-  const styles = useStyles();
+  const styles = useCodeViewerStyles();
   const [isExpanded, setIsExpanded] = useState(false);
   const [copied, setCopied] = useState(false);
 

@@ -1,17 +1,17 @@
-import { useState, useCallback, useRef, useEffect } from 'react';
+﻿import { useState, useCallback, useRef, useEffect } from 'react';
 import {
   PptbDataverseClient,
-  BlueprintGenerator,
-  type BlueprintResult,
+  HealthCheckerGenerator,
+  type HealthCheckerResult,
   type ProgressInfo,
-  type BlueprintScope,
+  type HealthCheckerScope,
   type FetchLogEntry,
 } from '../core';
 import type { ScopeSelection } from '../types/scope';
 
-interface UseBlueprintResult {
+interface UseHealthCheckerResult {
   generate: () => Promise<void>;
-  result: BlueprintResult | null;
+  result: HealthCheckerResult | null;
   progress: ProgressInfo | null;
   recentFetches: FetchLogEntry[];
   isGenerating: boolean;
@@ -24,11 +24,11 @@ interface UseBlueprintResult {
   cancel: () => void;
   reset: () => void;
   /**
-   * The live {@link BlueprintGenerator} instance from the most recent successful
+   * The live {@link HealthCheckerGenerator} instance from the most recent successful
    * `generate()` call. Exposed so callers (e.g. `ExportDialog`) can invoke
    * export methods directly. `null` before the first successful generation.
    */
-  blueprintGenerator: BlueprintGenerator | null;
+  healthCheckerGenerator: HealthCheckerGenerator | null;
 }
 
 /**
@@ -36,7 +36,7 @@ interface UseBlueprintResult {
  * to the solution-scope path intentionally. The split is preserved so that
  * future publisher-specific handling can be added without touching call sites.
  */
-function convertScope(scope: ScopeSelection): BlueprintScope {
+function convertScope(scope: ScopeSelection): HealthCheckerScope {
   if (scope.type === 'publisher') {
     // Publisher scope now uses solution IDs - same path as solution scope
     return {
@@ -56,7 +56,7 @@ function convertScope(scope: ScopeSelection): BlueprintScope {
 }
 
 /**
- * Drives blueprint generation, cancellation, and progress reporting for a given scope.
+ * Drives health checker generation, cancellation, and progress reporting for a given scope.
  *
  * @remarks
  * Fetch-log entries are throttled to a state update at most every 400 ms
@@ -70,8 +70,8 @@ function convertScope(scope: ScopeSelection): BlueprintScope {
  * The `useEffect` on `scope` clears all result/error/progress state whenever the
  * scope object reference changes (e.g. when the user clicks "Change Selection").
  */
-export function useBlueprint(scope: ScopeSelection): UseBlueprintResult {
-  const [result, setResult] = useState<BlueprintResult | null>(null);
+export function useHealthChecker(scope: ScopeSelection): UseHealthCheckerResult {
+  const [result, setResult] = useState<HealthCheckerResult | null>(null);
   const [progress, setProgress] = useState<ProgressInfo | null>(null);
   const [recentFetches, setRecentFetches] = useState<FetchLogEntry[]>([]);
   const [isGenerating, setIsGenerating] = useState(false);
@@ -79,7 +79,7 @@ export function useBlueprint(scope: ScopeSelection): UseBlueprintResult {
   const [error, setError] = useState<Error | null>(null);
 
   const abortControllerRef = useRef<AbortController | null>(null);
-  const generatorRef = useRef<BlueprintGenerator | null>(null);
+  const generatorRef = useRef<HealthCheckerGenerator | null>(null);
   // Throttle fetch entry updates — only re-render at most every 400ms
   const fetchBufRef = useRef<FetchLogEntry[]>([]);
   const fetchTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -116,9 +116,9 @@ export function useBlueprint(scope: ScopeSelection): UseBlueprintResult {
 
       // Create client and generator
       const client = new PptbDataverseClient(window.dataverseAPI, environmentUrl);
-      const blueprintScope = convertScope(scope);
+      const healthCheckerScope = convertScope(scope);
 
-      const generator = new BlueprintGenerator(client, blueprintScope, {
+      const generator = new HealthCheckerGenerator(client, healthCheckerScope, {
         includeSystemEntities: scope.includeSystem,
         onProgress: (progressInfo) => {
           setProgress(progressInfo);
@@ -138,17 +138,17 @@ export function useBlueprint(scope: ScopeSelection): UseBlueprintResult {
       // Store generator for export functionality
       generatorRef.current = generator;
 
-      // Generate blueprint
-      const blueprintResult = await generator.generate();
+      // Generate health checker result
+      const healthCheckerResult = await generator.generate();
 
-      setResult(blueprintResult);
+      setResult(healthCheckerResult);
       setProgress(null);
     } catch (err) {
       if (err instanceof Error && err.message.includes('cancelled')) {
         // Cancellation is not an error
         setError(null);
       } else {
-        const error = err instanceof Error ? err : new Error('Failed to generate blueprint');
+        const error = err instanceof Error ? err : new Error('Failed to generate health checker result');
         setError(error);
       }
     } finally {
@@ -192,6 +192,6 @@ export function useBlueprint(scope: ScopeSelection): UseBlueprintResult {
     error,
     cancel,
     reset,
-    blueprintGenerator: generatorRef.current,
+    healthCheckerGenerator: generatorRef.current,
   };
 }

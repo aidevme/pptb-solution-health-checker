@@ -1,7 +1,7 @@
-import type { BlueprintResult } from '../../types/blueprint.js';
+﻿import type { HealthCheckerResult } from '../../types/healthChecker.js';
 
 /**
- * A single section of the HTML blueprint export.
+ * A single section of the HTML health checker export.
  * Each section is responsible for rendering one component category.
  *
  * Registered in HtmlReporter via a static array — dynamic imports are forbidden (PATTERN-007).
@@ -15,10 +15,10 @@ export interface IHtmlTemplateSection {
    * Returns true if this section has content to render for the given result.
    * If false, the section is skipped entirely.
    */
-  hasContent(result: BlueprintResult): boolean;
+  hasContent(result: HealthCheckerResult): boolean;
   /**
    * Renders this section as an HTML string.
    * Called only when hasContent() returns true.
    */
-  render(result: BlueprintResult): string;
+  render(result: HealthCheckerResult): string;
 }

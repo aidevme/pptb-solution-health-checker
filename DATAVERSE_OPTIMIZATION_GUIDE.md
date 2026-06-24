@@ -194,7 +194,7 @@ for (const plugin of plugins) {
 
 ## Query Count Reference
 
-### Solution-Based Blueprint (10 entities, 5 plugins, 3 workflows)
+### Solution-Based Health Checker (10 entities, 5 plugins, 3 workflows)
 
 **Before Optimization:**
 1. Solution components: 1 query × N solutions = N
@@ -399,14 +399,14 @@ Before adding any Dataverse query:
 
 ## Performance Targets
 
-**Goal:** Fast blueprint generation even for large solutions
+**Goal:** Fast healtchecker generation even for large solutions
 
 - **Small solution** (5 entities, 10 plugins): < 3 seconds
 - **Medium solution** (20 entities, 50 plugins): < 10 seconds
 - **Large solution** (50 entities, 100 plugins): < 30 seconds
 
 **Query limits:**
-- Aim for < 50 total queries per blueprint generation
+- Aim for < 50 total queries per healtchecker generation
 - No queries inside loops (always batch)
 - Cache when possible, query when necessary
 

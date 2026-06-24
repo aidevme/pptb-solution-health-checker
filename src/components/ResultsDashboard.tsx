@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react';
+﻿import { useRef, useState } from 'react';
 import {
   Badge,
   Button,
@@ -17,6 +17,7 @@ import {
   CheckmarkCircle24Regular,
   ArrowDownload24Regular,
   ArrowLeft24Regular,
+  ClipboardTask24Regular,
 } from '@fluentui/react-icons';
 import {
   DashboardIcon,
@@ -26,8 +27,10 @@ import {
   CrossEntityAutomationIcon,
   FetchLogIcon,
 } from './componentIcons';
-import type { BlueprintResult } from '../core';
+import type { HealthCheckerResult } from '../core';
 import type { ScopeSelection } from '../types/scope';
+import type { RuleEvalResult } from '../core/rules/rulesData';
+import { RuleResultsView } from './results/RuleResultsView';
 import { formatDate, formatDateTime } from '../utils/dateFormat';
 import { ERDView } from './ERDView';
 import { CrossEntityAutomationView } from './CrossEntityAutomationView';
@@ -108,12 +111,13 @@ const useStyles = makeStyles({
 });
 
 export interface ResultsDashboardProps {
-  result: BlueprintResult;
+  result: HealthCheckerResult;
   scope: ScopeSelection;
+  ruleEvalResults?: RuleEvalResult[];
   onStartOver: () => void;
 }
 
-export function ResultsDashboard({ result, scope, onStartOver }: ResultsDashboardProps): JSX.Element {
+export function ResultsDashboard({ result, scope, ruleEvalResults = [], onStartOver }: ResultsDashboardProps): JSX.Element {
   const styles = useStyles();
 
   const defaultSelectedKey = getDefaultTabKey(result);
@@ -173,7 +177,7 @@ export function ResultsDashboard({ result, scope, onStartOver }: ResultsDashboar
       {/* Top Bar */}
       <div className={styles.topBar}>
         <Button appearance="subtle" icon={<ArrowLeft24Regular />} onClick={onStartOver}>
-          Generate New Blueprint
+          Generate New Health Checker
         </Button>
       </div>
 
@@ -214,6 +218,22 @@ export function ResultsDashboard({ result, scope, onStartOver }: ResultsDashboar
           }}
         >
           <Tab value="dashboard" icon={<DashboardIcon />}>Dashboard</Tab>
+
+          {ruleEvalResults.length > 0 && (
+            <Tab value="ruleResults" icon={<ClipboardTask24Regular />}>
+              Rule Results
+              {ruleEvalResults.filter((r) => r.status === 'finding').length > 0 && (
+                <Badge
+                  color="danger"
+                  shape="circular"
+                  size="small"
+                  style={{ marginLeft: tokens.spacingHorizontalXXS }}
+                >
+                  {ruleEvalResults.filter((r) => r.status === 'finding').length}
+                </Badge>
+              )}
+            </Tab>
+          )}
 
           {hasERD && (
             <Tab value="erd" icon={<ErdIcon />}>Entity Relationship Diagram</Tab>
@@ -277,7 +297,7 @@ export function ResultsDashboard({ result, scope, onStartOver }: ResultsDashboar
       {/* ERD Tab Content */}
       {mainTab === 'erd' && hasERD && (
         <div className={styles.tabContent}>
-          <ERDView erd={result.erd!} blueprintResult={result} />
+          <ERDView erd={result.erd!} healthCheckerResult={result} />
         </div>
       )}
 
@@ -300,8 +320,15 @@ export function ResultsDashboard({ result, scope, onStartOver }: ResultsDashboar
         <div className={styles.tabContent}>
           <CrossEntityAutomationView
             analysis={result.crossEntityAnalysis}
-            blueprints={result.entities}
+            healthcheckers={result.entities}
           />
+        </div>
+      )}
+
+      {/* Rule Results Tab Content */}
+      {mainTab === 'ruleResults' && ruleEvalResults.length > 0 && (
+        <div className={styles.tabContent}>
+          <RuleResultsView results={ruleEvalResults} />
         </div>
       )}
 

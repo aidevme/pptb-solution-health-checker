@@ -1,4 +1,4 @@
-import type { BusinessRuleDefinition, Condition, Action } from '../types/blueprint.js';
+﻿import type { BusinessRuleDefinition, Condition, Action } from '../types/healthChecker.js';
 
 /**
  * Parser for Business Rule definitions.
@@ -237,7 +237,7 @@ export class BusinessRuleParser {
     // Solution: scan for \bif\s*\( with a balanced-paren counter to locate and
     // extract each block; skip null guards identified by {return;} bodies.
 
-    const conditionGroups: import('../types/blueprint.js').ConditionGroup[] = [];
+    const conditionGroups: import('../types/healthChecker.js').ConditionGroup[] = [];
     const elseActions: Action[] = [];
 
     const ifScanRe = /\bif\s*\(/g;

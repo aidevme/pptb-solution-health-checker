@@ -1,4 +1,4 @@
-import type { FlowDefinition, ExternalCall, DataverseAction } from '../types/blueprint.js';
+﻿import type { FlowDefinition, ExternalCall, DataverseAction } from '../types/healthChecker.js';
 
 /**
  * Parses Power Automate flow definitions from clientdata JSON

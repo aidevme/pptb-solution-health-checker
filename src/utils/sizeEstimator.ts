@@ -1,4 +1,4 @@
-import type { BlueprintResult } from '../core';
+﻿import type { HealthCheckerResult } from '../core';
 
 /**
  * Pre-generation export size estimators shown in the `ExportDialog` before the
@@ -7,7 +7,7 @@ import type { BlueprintResult } from '../core';
  * @remarks
  * All three estimators trade accuracy for speed — they use flat per-item byte
  * constants rather than serialising the full result. The constants were calibrated
- * against real blueprint outputs and are intentionally conservative (they tend to
+ * against real health checker outputs and are intentionally conservative (they tend to
  * over-estimate slightly). The one exception is ERD: both `estimateMarkdownSize`
  * and `estimateJsonSize` measure the actual Mermaid diagram string lengths because
  * ERD size varies too widely for a flat constant to be useful.
@@ -22,10 +22,10 @@ import type { BlueprintResult } from '../core';
  * ERD size is measured from the actual Mermaid diagram strings rather than
  * approximated, because diagram length varies widely with entity count.
  *
- * @param result - Completed blueprint result
+ * @param result - Completed health checker result
  * @returns Estimated size in bytes
  */
-export function estimateMarkdownSize(result: BlueprintResult): number {
+export function estimateMarkdownSize(result: HealthCheckerResult): number {
   // Base overhead for file structure
   let size = 50000; // ~50KB for README, directory structure, etc.
 
@@ -72,10 +72,10 @@ export function estimateMarkdownSize(result: BlueprintResult): number {
  * Cross-entity analysis uses `Map.size` counts rather than serialising Maps,
  * since `JSON.stringify` silently drops `Map` entries.
  *
- * @param result - Completed blueprint result
+ * @param result - Completed health checker result
  * @returns Estimated size in bytes
  */
-export function estimateJsonSize(result: BlueprintResult): number {
+export function estimateJsonSize(result: HealthCheckerResult): number {
   // Quick estimation: stringify a sample and extrapolate
   // For better accuracy, we could stringify the whole thing, but that's expensive
 
@@ -144,10 +144,10 @@ export function estimateJsonSize(result: BlueprintResult): number {
  * and the Mermaid CDN `<script>` tag. ERD size is estimated from the Mermaid
  * diagram strings (same approach as `estimateMarkdownSize`).
  *
- * @param result - Completed blueprint result
+ * @param result - Completed health checker result
  * @returns Estimated size in bytes
  */
-export function estimateHtmlSize(result: BlueprintResult): number {
+export function estimateHtmlSize(result: HealthCheckerResult): number {
   // HTML has overhead for CSS, JavaScript, and structure
   let size = 100000; // ~100KB base (HTML structure, CSS, embedded JS, Mermaid CDN link)
 

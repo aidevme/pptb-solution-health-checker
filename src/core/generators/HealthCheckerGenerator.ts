@@ -1,4 +1,4 @@
-import type { IDataverseClient } from '../dataverse/IDataverseClient.js';
+﻿import type { IDataverseClient } from '../dataverse/IDataverseClient.js';
 import { FetchLogger } from '../utils/FetchLogger.js';
 import { withConcurrencyLimit } from '../utils/withConcurrencyLimit.js';
 import { EntityDiscovery } from '../discovery/EntityDiscovery.js';
@@ -23,14 +23,14 @@ import type { EntityMetadata, Publisher, Solution } from '../types.js';
 import type { ComponentInventory, ComponentInventoryWithSolutions, WorkflowInventory } from '../types/components.js';
 import type {
   GeneratorOptions,
-  BlueprintResult,
-  EntityBlueprint,
+  HealthCheckerResult,
+  EntityHealthResult,
   ProgressInfo,
   StepWarning,
-} from '../types/blueprint.js';
+} from '../types/healthChecker.js';
 
 /**
- * Scope selection for blueprint generation.
+ * Scope selection for health checker generation.
  *
  * @remarks
  * `solutionIds` must be non-empty when `type` is `'solution'` — the engine
@@ -46,7 +46,7 @@ export interface ScopeSelection {
 }
 
 /**
- * Main orchestrator for generating Power Platform system blueprints.
+ * Main orchestrator for generating Power Platform system health checkers.
  *
  * @remarks
  * The generation strategy is discover-first: component IDs are resolved up-front
@@ -55,19 +55,19 @@ export interface ScopeSelection {
  *
  * Cancellation is cooperative: each processor and the entity-schema loop check
  * `options.signal` between operations.  An aborted signal causes `generate()` to
- * throw `"Blueprint generation cancelled"` — the caller is responsible for
+ * throw `"Health checker generation cancelled"` — the caller is responsible for
  * distinguishing this from a genuine error.
  *
  * Progress is reported via `options.onProgress` throughout.  The `phase` field
  * lets the UI render a contextual label; `current`/`total` drive the progress bar.
  */
-export class BlueprintGenerator {
+export class HealthCheckerGenerator {
   private readonly client: IDataverseClient;
   private readonly options: GeneratorOptions;
   private readonly scope: ScopeSelection;
   private publishers: Publisher[] = [];
   private solutions: Solution[] = [];
-  private latestResult: BlueprintResult | null = null;
+  private latestResult: HealthCheckerResult | null = null;
   private logger: FetchLogger = new FetchLogger();
   private stepWarnings: StepWarning[] = [];
 
@@ -97,7 +97,7 @@ export class BlueprintGenerator {
   }
 
   /**
-   * Generates a complete blueprint for the configured scope.
+   * Generates a complete health checker for the configured scope.
    *
    * @remarks
    * The pipeline runs in fixed order:
@@ -107,11 +107,11 @@ export class BlueprintGenerator {
    * 4. ERD generation, cross-entity analysis, external-dependency aggregation,
    *    and solution-distribution analysis
    *
-   * Throws `"Blueprint generation cancelled"` if `options.signal` is aborted at
+   * Throws `"Health checker generation cancelled"` if `options.signal` is aborted at
    * any checkpoint.  All other errors are re-thrown as
-   * `"Blueprint generation failed: <message>"`.
+   * `"Health checker generation failed: <message>"`.
    */
-  async generate(): Promise<BlueprintResult> {
+  async generate(): Promise<HealthCheckerResult> {
     const startTime = new Date();
     const warnings: string[] = [];
     this.logger = new FetchLogger();
@@ -151,12 +151,12 @@ export class BlueprintGenerator {
       });
 
       // STEP 2: Process Entities
-      const entityBlueprints = await this.processEntities(entities, inventory.attributeIds, scaleTier.concurrency);
+      const entityHealthCheckers = await this.processEntities(entities, inventory.attributeIds, scaleTier.concurrency);
       if (entities.length === 0) {
         warnings.push('No entities found in selected scope');
       }
 
-      if (this.options.signal?.aborted) throw new Error('Blueprint generation cancelled');
+      if (this.options.signal?.aborted) throw new Error('Health checker generation cancelled');
 
       // STEPS 3-7: Run all registered processor steps
       const acc = createAccumulator();
@@ -173,7 +173,7 @@ export class BlueprintGenerator {
       };
 
       for (const step of GENERATOR_STEPS) {
-        if (this.options.signal?.aborted) throw new Error('Blueprint generation cancelled');
+        if (this.options.signal?.aborted) throw new Error('Health checker generation cancelled');
         await step.run(processorContext);
       }
 
@@ -196,18 +196,18 @@ export class BlueprintGenerator {
         formsByEntity,
       } = acc;
 
-      // STEP 8: Populate automation and security in entity blueprints
-      for (const blueprint of entityBlueprints) {
-        const entityName = blueprint.entity.LogicalName;
-        blueprint.plugins = pluginsByEntity.get(entityName) || [];
-        blueprint.flows = flowsByEntity.get(entityName) || [];
-        blueprint.businessRules = businessRulesByEntity.get(entityName) || [];
-        blueprint.forms = formsByEntity.get(entityName) || [];
+      // STEP 8: Populate automation and security in entity health checkers
+      for (const healthchecker of entityHealthCheckers) {
+        const entityName = healthchecker.entity.LogicalName;
+        healthchecker.plugins = pluginsByEntity.get(entityName) || [];
+        healthchecker.flows = flowsByEntity.get(entityName) || [];
+        healthchecker.businessRules = businessRulesByEntity.get(entityName) || [];
+        healthchecker.forms = formsByEntity.get(entityName) || [];
 
         // Attach field security if it exists for this entity
         const fieldSecurity = fieldSecurityByEntity.get(entityName);
         if (fieldSecurity) {
-          blueprint.fieldSecurity = fieldSecurity;
+          healthchecker.fieldSecurity = fieldSecurity;
         }
       }
 
@@ -223,7 +223,7 @@ export class BlueprintGenerator {
       // 10.1: Generate ERD
       const erdGenerator = new ERDGenerator();
       const bpfEntityNames = new Set(businessProcessFlows.map(b => b.uniqueName.toLowerCase()));
-      const erd = erdGenerator.generateMermaidERD(entityBlueprints, this.publishers, bpfEntityNames);
+      const erd = erdGenerator.generateMermaidERD(entityHealthCheckers, this.publishers, bpfEntityNames);
       this.reportProgress({
         phase: 'discovering',
         entityName: '',
@@ -234,7 +234,7 @@ export class BlueprintGenerator {
 
       // 10.2: Analyze cross-entity automation
       const crossEntityAnalyzer = new CrossEntityAnalyzer();
-      const crossEntityAnalysis = crossEntityAnalyzer.analyze(entityBlueprints, classicWorkflows, flows);
+      const crossEntityAnalysis = crossEntityAnalyzer.analyze(entityHealthCheckers, classicWorkflows, flows);
       this.reportProgress({
         phase: 'discovering',
         entityName: '',
@@ -245,7 +245,7 @@ export class BlueprintGenerator {
 
       // 10.3: Aggregate external dependencies
       const externalDependencyAggregator = new ExternalDependencyAggregator();
-      const blueprintResultPartial: BlueprintResult = {
+      const healthCheckerResultPartial: HealthCheckerResult = {
         metadata: {
           generatedAt: startTime,
           environment: this.client.getEnvironmentUrl(),
@@ -253,7 +253,7 @@ export class BlueprintGenerator {
           scope: { type: this.scope.type, description: this.getScopeDescription() },
           entityCount: entities.length,
         },
-        entities: entityBlueprints,
+        entities: entityHealthCheckers,
         summary: {
           totalEntities: 0,
           totalPlugins: 0,
@@ -298,7 +298,7 @@ export class BlueprintGenerator {
         webResources,
         webResourcesByType,
       };
-      const externalEndpoints = externalDependencyAggregator.aggregateExternalDependencies(blueprintResultPartial);
+      const externalEndpoints = externalDependencyAggregator.aggregateExternalDependencies(healthCheckerResultPartial);
       this.reportProgress({
         phase: 'discovering',
         entityName: '',
@@ -313,7 +313,7 @@ export class BlueprintGenerator {
         const solutionDistributionAnalyzer = new SolutionDistributionAnalyzer();
         solutionDistribution = solutionDistributionAnalyzer.analyzeSolutionDistribution(
           this.solutions,
-          blueprintResultPartial,
+          healthCheckerResultPartial,
           inventory.solutionComponentMap  // Pass component membership for accurate counting
         );
       }
@@ -327,7 +327,7 @@ export class BlueprintGenerator {
 
       // Generate summary
       const summary = {
-        totalEntities: entityBlueprints.length,
+        totalEntities: entityHealthCheckers.length,
         totalPlugins: inventory.pluginIds.length,
         totalPluginPackages: inventory.pluginPackageIds.length,
         totalFlows: workflowInventory.flowIds.length,
@@ -343,7 +343,7 @@ export class BlueprintGenerator {
         totalAttributeMaskingRules: attributeMaskingRules.length,
         totalColumnSecurityProfiles: columnSecurityProfiles.length,
         totalCustomConnectors: inventory.customConnectorIds.length,
-        totalAttributes: entityBlueprints.reduce((sum, bp) => sum + (bp.entity.Attributes?.length || 0), 0),
+        totalAttributes: entityHealthCheckers.reduce((sum, hc) => sum + (hc.entity.Attributes?.length || 0), 0),
         totalWebResources: inventory.webResourceIds.length,
         totalCanvasApps: canvasApps.length,
         totalCustomPages: customPages.length,
@@ -356,11 +356,11 @@ export class BlueprintGenerator {
         entityName: '',
         current: entities.length,
         total: entities.length,
-        message: 'Blueprint generation complete!',
+        message: 'Health Checker generation complete!',
       });
 
       // Store result for export functionality
-      const result: BlueprintResult = {
+      const result: HealthCheckerResult = {
         metadata: {
           generatedAt: startTime,
           environment: this.client.getEnvironmentUrl(),
@@ -371,7 +371,7 @@ export class BlueprintGenerator {
           },
           entityCount: entities.length,
         },
-        entities: entityBlueprints,
+        entities: entityHealthCheckers,
         summary,
         plugins,
         pluginsByEntity,
@@ -411,7 +411,7 @@ export class BlueprintGenerator {
       return result;
     } catch (error) {
       throw new Error(
-        `Blueprint generation failed: ${error instanceof Error ? error.message : 'Unknown error'}`
+        `Health Checker generation failed: ${error instanceof Error ? error.message : 'Unknown error'}`
       );
     } finally {
       unsubscribeFetchLogger?.();
@@ -501,12 +501,12 @@ export class BlueprintGenerator {
    * @param concurrency - Maximum simultaneous schema fetches; caller derives
    *   this from {@link getScaleTier} to respect service-protection limits.
    */
-  private async processEntities(entities: EntityMetadata[], attributeIds: string[], concurrency = 5): Promise<EntityBlueprint[]> {
+  private async processEntities(entities: EntityMetadata[], attributeIds: string[], concurrency = 5): Promise<EntityHealthResult[]> {
     const total = entities.length;
     let completed = 0;
 
     const tasks = entities.map(entity => async () => {
-      if (this.options.signal?.aborted) throw new Error('Blueprint generation cancelled');
+      if (this.options.signal?.aborted) throw new Error('Health Checker generation cancelled');
 
       const displayName = entity.DisplayName?.UserLocalizedLabel?.Label || entity.LogicalName;
       const current = ++completed;
@@ -567,15 +567,15 @@ export class BlueprintGenerator {
         flows: [],
         businessRules: [],
         forms: [],
-      } as EntityBlueprint;
+      } as EntityHealthResult;
     });
 
     const settled = await withConcurrencyLimit(concurrency, tasks);
-    const blueprints: EntityBlueprint[] = [];
+    const healthCheckers: EntityHealthResult[] = [];
     let entityFailCount = 0;
     for (const r of settled) {
       if (r.status === 'fulfilled') {
-        blueprints.push(r.value);
+        healthCheckers.push(r.value);
       } else {
         entityFailCount++;
       }
@@ -588,7 +588,7 @@ export class BlueprintGenerator {
         failedCount: entityFailCount,
       });
     }
-    return blueprints;
+    return healthCheckers;
   }
 
   /**
@@ -660,7 +660,7 @@ export class BlueprintGenerator {
   }
 
   /**
-   * Export blueprint as JSON
+   * Export healthchecker as JSON
    * @returns JSON string with metadata wrapper
    */
   async exportAsJson(): Promise<string> {
@@ -669,16 +669,16 @@ export class BlueprintGenerator {
   }
 
   /**
-   * Export blueprint as Markdown
+   * Export healthchecker as Markdown
    * @returns MarkdownExport with file map and structure
    */
-  async exportAsMarkdown(): Promise<import('../types/blueprint.js').MarkdownExport> {
+  async exportAsMarkdown(): Promise<import('../types/healthChecker.js').MarkdownExport> {
     const reporter = new MarkdownReporter();
     return reporter.generate(this.latestResult!);
   }
 
   /**
-   * Export blueprint as HTML
+   * Export healthchecker as HTML
    * @returns HTML string (single-page document)
    */
   async exportAsHtml(): Promise<string> {
@@ -687,7 +687,7 @@ export class BlueprintGenerator {
   }
 
   /**
-   * Export blueprint as ZIP package
+   * Export health checker as ZIP package
    * @param formats Array of formats to include ('json', 'html', 'markdown')
    * @returns ZIP file as Blob for browser download
    */
@@ -696,7 +696,7 @@ export class BlueprintGenerator {
 
     let json: string | undefined;
     let html: string | undefined;
-    let markdown: import('../types/blueprint.js').MarkdownExport | undefined;
+    let markdown: import('../types/healthChecker.js').MarkdownExport | undefined;
 
     // Generate selected formats
     if (formats.includes('json')) {
@@ -712,7 +712,7 @@ export class BlueprintGenerator {
     }
 
     // Package into ZIP
-    return packager.packageBlueprint(markdown, json, html);
+    return packager.packageHealthChecker(markdown, json, html);
   }
 
   /**

@@ -1,5 +1,5 @@
-import type { IDataverseClient } from '../../dataverse/IDataverseClient.js';
-import type { ProgressInfo, StepWarning } from '../../types/blueprint.js';
+﻿import type { IDataverseClient } from '../../dataverse/IDataverseClient.js';
+import type { ProgressInfo, StepWarning } from '../../types/healthChecker.js';
 import { ColumnSecurityDiscovery, type AttributeMaskingRule, type ColumnSecurityProfile } from '../../discovery/ColumnSecurityDiscovery.js';
 
 /**

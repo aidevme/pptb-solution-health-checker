@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import type { BlueprintResult, ExportProgress } from '../core';
+﻿import { useState } from 'react';
+import type { HealthCheckerResult, ExportProgress } from '../core';
 import { ExportFacade } from '../core/exporters/ExportFacade.js';
 
 export interface UseExportResult {
@@ -54,7 +54,7 @@ function downloadFile(blob: Blob, filename: string): void {
 }
 
 /**
- * Provides browser-download export operations for a completed blueprint result.
+ * Provides browser-download export operations for a completed health checker result.
  *
  * @remarks
  * A new {@link ExportFacade} instance is created on every render. This is
@@ -64,7 +64,7 @@ function downloadFile(blob: Blob, filename: string): void {
  * `exportAll` hardcodes `['markdown', 'json', 'html']`. If a new format is
  * added to {@link ExportFacade}, `exportAll` must be updated manually.
  */
-export function useExport(result: BlueprintResult): UseExportResult {
+export function useExport(result: HealthCheckerResult): UseExportResult {
   const [isExporting, setIsExporting] = useState(false);
   const [progress, setProgress] = useState<ExportProgress | null>(null);
   const [error, setError] = useState<Error | null>(null);
@@ -77,13 +77,13 @@ export function useExport(result: BlueprintResult): UseExportResult {
         phase: 'Generating JSON export',
         current: 0,
         total: 1,
-        message: 'Serializing blueprint data...',
+        message: 'Serializing health checker data...',
       });
 
       const json = facade.exportAsJson(result);
       const blob = new Blob([json], { type: 'application/json' });
       const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, -5);
-      downloadFile(blob, `blueprint-${timestamp}.json`);
+      downloadFile(blob, `health-checker-${timestamp}.json`);
 
       setProgress({
         phase: 'Complete',
@@ -105,7 +105,7 @@ export function useExport(result: BlueprintResult): UseExportResult {
 
       const zip = await facade.exportAsZip(result, ['markdown']);
       const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, -5);
-      downloadFile(zip, `blueprint-markdown-${timestamp}.zip`);
+      downloadFile(zip, `health-checker-markdown-${timestamp}.zip`);
 
       setProgress({
         phase: 'Complete',
@@ -128,7 +128,7 @@ export function useExport(result: BlueprintResult): UseExportResult {
       const html = facade.exportAsHtml(result);
       const blob = new Blob([html], { type: 'text/html' });
       const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, -5);
-      downloadFile(blob, `blueprint-${timestamp}.html`);
+      downloadFile(blob, `health-checker-${timestamp}.html`);
 
       setProgress({
         phase: 'Complete',
@@ -189,7 +189,7 @@ export function useExport(result: BlueprintResult): UseExportResult {
 
       const zip = await facade.exportAsZip(result, formats);
       const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, -5);
-      downloadFile(zip, `blueprint-${timestamp}.zip`);
+      downloadFile(zip, `health-checker-${timestamp}.zip`);
 
       setProgress({
         phase: 'Complete',

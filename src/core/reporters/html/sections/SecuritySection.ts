@@ -1,11 +1,11 @@
-import type { BlueprintResult } from '../../../types/blueprint.js';
+﻿import type { HealthCheckerResult } from '../../../types/healthChecker.js';
 import type { IHtmlTemplateSection } from '../IHtmlTemplateSection.js';
 import { HtmlTemplates } from '../HtmlTemplates.js';
 
 export class SecuritySection implements IHtmlTemplateSection {
   readonly key = 'security';
   private readonly templates = new HtmlTemplates();
-  hasContent(result: BlueprintResult): boolean {
+  hasContent(result: HealthCheckerResult): boolean {
     return !!(
       result.securityRoles?.length ||
       result.fieldSecurityProfiles?.length ||
@@ -13,7 +13,7 @@ export class SecuritySection implements IHtmlTemplateSection {
       result.columnSecurityProfiles?.length
     );
   }
-  render(result: BlueprintResult): string {
+  render(result: HealthCheckerResult): string {
     return this.templates.htmlSecuritySection(
       result.securityRoles,
       result.fieldSecurityProfiles,

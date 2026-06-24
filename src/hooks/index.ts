@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Barrel re-export for all custom React hooks in the `hooks/` directory.
  *
  * @remarks
@@ -15,7 +15,7 @@
  *
  * **PPTB Desktop dependency**
  *
- * {@link useBlueprint}, {@link useScopeData}, and {@link useConnectionChange} require
+ * {@link useHealthChecker}, {@link useScopeData}, and {@link useConnectionChange} require
  * `window.toolboxAPI` / `window.dataverseAPI` injected by the PPTB Desktop host.
  * Outside that host they throw or silently no-op — they cannot be used in isolation
  * (e.g. Storybook or unit tests) without a mock of those globals.
@@ -23,7 +23,7 @@
  * @packageDocumentation
  */
 
-export { useBlueprint } from './useBlueprint';
+export { useHealthChecker } from './useHealthChecker';
 export { useConnectionChange } from './useConnectionChange';
 export { useExpandable } from './useExpandable';
 export * from './useExport';

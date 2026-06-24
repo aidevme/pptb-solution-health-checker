@@ -105,13 +105,18 @@ const useStyles = makeStyles({
 export interface ScopeSelectorProps {
   onScopeSelected: (scope: ScopeSelection) => void;
   onCancel?: () => void;
+  onLoadingChange?: (isLoading: boolean) => void;
 }
 
-export function ScopeSelector({ onScopeSelected, onCancel }: ScopeSelectorProps) {
+export function ScopeSelector({ onScopeSelected, onCancel, onLoadingChange }: ScopeSelectorProps) {
   const styles = useStyles();
 
   // Data fetching — delegated to useScopeData hook
   const { publishers, solutions, isLoading: loading, error, retry: handleRetry } = useScopeData();
+
+  useEffect(() => {
+    onLoadingChange?.(loading);
+  }, [loading, onLoadingChange]);
 
   // Selection state
   const [scopeType, setScopeType] = useState<ScopeType>('solution');
@@ -373,7 +378,7 @@ export function ScopeSelector({ onScopeSelected, onCancel }: ScopeSelectorProps)
           </Button>
         )}
         <Button appearance="primary" onClick={handleContinue} disabled={!isValidSelection()}>
-          Continue
+          Next
         </Button>
       </div>
 

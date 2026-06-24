@@ -93,4 +93,13 @@ export const useAppStyles = makeStyles({
   errorContainer: {
     marginBottom: tokens.spacingVerticalL,
   },
+  loadingOverlay: {
+    position: 'fixed',
+    inset: 0,
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: tokens.colorNeutralBackground1,
+    zIndex: 9999,
+  },
 });

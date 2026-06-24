@@ -1,4 +1,4 @@
-import type { EntityBlueprint, Flow } from '../types/blueprint.js';
+﻿import type { EntityHealthResult, Flow } from '../types/healthChecker.js';
 import type { ClassicWorkflow } from '../types/classicWorkflow.js';
 import type {
   CrossEntityAnalysisResult,
@@ -18,7 +18,7 @@ import { resolveEntityName } from '../utils/entityName.js';
 
 /**
  * Performs 4-layer cross-entity automation analysis:
- *   Layer 1 — Discovery: entity blueprints (existing data)
+ *   Layer 1 — Discovery: entity healthcheckers (existing data)
  *   Layer 2 — Entry Points: which automations on other entities write to THIS entity
  *   Layer 3 — Activation Map: which of THIS entity's automations fire for each entry point
  *   Layer 4 — Risk Detection: performance, circular ref, deep sync chain, high fan-out
@@ -27,11 +27,11 @@ import { resolveEntityName } from '../utils/entityName.js';
  */
 export class CrossEntityAnalyzer {
   /**
-   * Produces a complete cross-entity trace result from pre-fetched blueprint data.
+   * Produces a complete cross-entity trace result from pre-fetched health checker data.
    *
    * @remarks
    * Performs no Dataverse queries — all input must already be resolved. `allFlows` should
-   * contain every flow in scope, including those not attached to any entity blueprint
+   * contain every flow in scope, including those not attached to any entity health checker
    * (scheduled, manual, solution-level). Flows missing from `allFlows` will not appear in
    * cross-entity chain links or unscoped entry points.
    *
@@ -39,22 +39,22 @@ export class CrossEntityAnalyzer {
    * extracted via {@link ClassicWorkflowXamlParser}; workflows with empty XAML are skipped.
    */
   analyze(
-    blueprints: EntityBlueprint[],
+    healthCheckers: EntityHealthResult[],
     classicWorkflows: ClassicWorkflow[] = [],
     allFlows: Flow[] = []
   ): CrossEntityAnalysisResult {
     // Build lookup maps
     const entityDisplayMap = new Map<string, string>();
-    for (const { entity } of blueprints) {
+    for (const { entity } of healthCheckers) {
       entityDisplayMap.set(
         entity.LogicalName.toLowerCase(),
         entity.DisplayName?.UserLocalizedLabel?.Label || entity.LogicalName
       );
     }
 
-    const blueprintMap = new Map<string, EntityBlueprint>();
-    for (const bp of blueprints) {
-      blueprintMap.set(bp.entity.LogicalName.toLowerCase(), bp);
+    const healthCheckerMap = new Map<string, EntityHealthResult>();
+    for (const hc of healthCheckers) {
+      healthCheckerMap.set(hc.entity.LogicalName.toLowerCase(), hc);
     }
 
     // Build cwByEntity map
@@ -67,9 +67,9 @@ export class CrossEntityAnalyzer {
     }
 
     // Layer 2: Discover all entry points (source-centric scan)
-    // Key = target entity logical name (may or may not be in blueprints)
+    // Key = target entity logical name (may or may not be in health checkers)
     const allEntryPointsByTarget = this.discoverAllEntryPoints(
-      blueprints,
+      healthCheckers,
       classicWorkflows,
       entityDisplayMap,
       allFlows
@@ -78,21 +78,21 @@ export class CrossEntityAnalyzer {
     const entityViews = new Map<string, CrossEntityEntityView>();
     // Seed chain links with unbound action calls (no entity target — chain map only)
     const chainLinks: CrossEntityChainLink[] = this.collectUnboundChainLinks(
-      blueprints, entityDisplayMap, allFlows
+      healthCheckers, entityDisplayMap, allFlows
     );
     let totalEntryPoints = 0;
     const globalRisks: CrossEntityRisk[] = [];
 
     for (const [targetEntity, entryPoints] of allEntryPointsByTarget) {
-      const targetBp = blueprintMap.get(targetEntity);
+      const targetHp = healthCheckerMap.get(targetEntity);
       const targetDisplayName = entityDisplayMap.get(targetEntity) || targetEntity;
 
       const traces: CrossEntityTrace[] = [];
 
       for (const ep of entryPoints) {
         // Layer 3: Build activation map (only possible for in-scope entities)
-        const activations: AutomationActivation[] = targetBp
-          ? this.buildActivationMap(targetBp, ep, entityDisplayMap, cwByEntity)
+        const activations: AutomationActivation[] = targetHp
+          ? this.buildActivationMap(targetHp, ep, entityDisplayMap, cwByEntity)
           : [];
 
         const traceRisks = this.detectTraceRisks(ep, activations, targetEntity);
@@ -135,20 +135,20 @@ export class CrossEntityAnalyzer {
     // Deduplicate global risks
     const deduplicatedRisks = this.deduplicateRisks(globalRisks);
 
-    // Build allEntityPipelines — all blueprint entities with any automation
+    // Build allEntityPipelines — all health checker entities with any automation
     const allEntityPipelines = new Map<string, EntityAutomationPipeline>();
     let noFilterPluginCount = 0;
 
-    for (const bp of blueprints) {
-      const entityKey = bp.entity.LogicalName.toLowerCase();
-      const displayName = entityDisplayMap.get(entityKey) || bp.entity.LogicalName;
+    for (const hc of healthCheckers) {
+      const entityKey = hc.entity.LogicalName.toLowerCase();
+      const displayName = entityDisplayMap.get(entityKey) || hc.entity.LogicalName;
       const messagePipelines: MessagePipeline[] = [];
 
       for (const message of ['Create', 'Update', 'Delete'] as const) {
         const steps: PipelineStep[] = [];
 
         // Plugins
-        for (const plugin of bp.plugins) {
+        for (const plugin of hc.plugins) {
           if (plugin.entity?.toLowerCase() !== entityKey) continue;
           if (!this.messageMatchesOperation(plugin.message, message)) continue;
           const isAsync = plugin.mode === 1 || plugin.stage === 50;
@@ -168,7 +168,7 @@ export class CrossEntityAnalyzer {
         }
 
         // Flows triggered on this entity for this message
-        for (const flow of bp.flows) {
+        for (const flow of hc.flows) {
           if (flow.definition.triggerType !== 'Dataverse') {
             continue;
           }
@@ -203,7 +203,7 @@ export class CrossEntityAnalyzer {
 
         // Business Rules (server-scope, Create + Update only)
         if (message !== 'Delete') {
-          for (const br of bp.businessRules) {
+          for (const br of hc.businessRules) {
             const isServer =
               br.definition.executionContext === 'Server' ||
               br.definition.executionContext === 'Both';
@@ -294,23 +294,23 @@ export class CrossEntityAnalyzer {
       });
     }
 
-    // Step 1 — Process flows from allFlows that have a triggerEntity in blueprints
-    // but are NOT already in any blueprint's flow list (e.g. manual flows with entity = 'none').
-    const blueprintScopedFlowIdsForPipeline = new Set<string>();
-    for (const bp of blueprints) {
-      for (const flow of bp.flows) {
-        blueprintScopedFlowIdsForPipeline.add(flow.id.toLowerCase());
+    // Step 1 — Process flows from allFlows that have a triggerEntity in health checkers
+    // but are NOT already in any healthchecker's flow list (e.g. manual flows with entity = 'none').
+    const healthCheckerScopedFlowIdsForPipeline = new Set<string>();
+    for (const hc of healthCheckers) {
+      for (const flow of hc.flows) {
+        healthCheckerScopedFlowIdsForPipeline.add(flow.id.toLowerCase());
       }
     }
 
     for (const flow of allFlows) {
-      if (blueprintScopedFlowIdsForPipeline.has(flow.id.toLowerCase())) continue;
+      if (healthCheckerScopedFlowIdsForPipeline.has(flow.id.toLowerCase())) continue;
       const triggerEntity = resolveEntityName(flow.definition.triggerEntity)?.toLowerCase() ?? null;
       if (!triggerEntity) continue;
-      const targetBp = blueprintMap.get(triggerEntity);
-      if (!targetBp) continue;
+      const targetHp = healthCheckerMap.get(triggerEntity);
+      if (!targetHp) continue;
 
-      // This flow has a trigger entity in blueprints but wasn't in bp.flows.
+      // This flow has a trigger entity in health checkers but wasn't in hc.flows.
       // Add it to that entity's pipeline under the 'Manual' message group.
       const entityKey = triggerEntity;
       const displayName = entityDisplayMap.get(entityKey) || entityKey;
@@ -408,7 +408,7 @@ export class CrossEntityAnalyzer {
    * they are added directly to the Global Chain Map only.
    */
   private collectUnboundChainLinks(
-    blueprints: EntityBlueprint[],
+    healthCheckers: EntityHealthResult[],
     entityDisplayMap: Map<string, string>,
     allFlows: Flow[]
   ): CrossEntityChainLink[] {
@@ -419,7 +419,7 @@ export class CrossEntityAnalyzer {
       sourceEntity: string,
       sourceDisplayName: string,
       flow: Flow,
-      action: import('../types/blueprint.js').DataverseAction
+      action: import('../types/healthChecker.js').DataverseAction
     ): void => {
       const key = `${flow.id}:${action.customActionApiName ?? action.actionName}`;
       if (seen.has(key)) return;
@@ -446,10 +446,10 @@ export class CrossEntityAnalyzer {
     };
 
     // Entity-scoped flows
-    for (const bp of blueprints) {
-      const sourceEntity = bp.entity.LogicalName.toLowerCase();
+    for (const hc of healthCheckers) {
+      const sourceEntity = hc.entity.LogicalName.toLowerCase();
       const sourceDisplayName = entityDisplayMap.get(sourceEntity) || sourceEntity;
-      for (const flow of bp.flows) {
+      for (const flow of hc.flows) {
         for (const action of flow.definition.dataverseActions ?? []) {
           if (!action.isUnbound) continue;
           addLink(sourceEntity, sourceDisplayName, flow, action);
@@ -458,9 +458,9 @@ export class CrossEntityAnalyzer {
     }
 
     // Unscoped flows (scheduled, manual, solution-level)
-    const blueprintScopedIds = new Set(blueprints.flatMap(bp => bp.flows.map(f => f.id.toLowerCase())));
+    const healthCheckerScopedIds = new Set(healthCheckers.flatMap(hc => hc.flows.map(f => f.id.toLowerCase())));
     for (const flow of allFlows) {
-      if (blueprintScopedIds.has(flow.id.toLowerCase())) continue;
+      if (healthCheckerScopedIds.has(flow.id.toLowerCase())) continue;
       const entityName =
         resolveEntityName(flow.entity) ??
         resolveEntityName(flow.definition.triggerEntity);
@@ -488,14 +488,14 @@ export class CrossEntityAnalyzer {
   }
 
   /**
-   * Layer 2: Discover ALL entry points across all blueprints.
-   * Scans source-first: for each blueprint's flows and classic workflows,
-   * collects writes to any entity (including those NOT in blueprints).
+   * Layer 2: Discover ALL entry points across all health checkers.
+   * Scans source-first: for each health checker's flows and classic workflows,
+   * collects writes to any entity (including those NOT in health checkers).
    *
    * Returns a map keyed by target entity logical name.
    */
   private discoverAllEntryPoints(
-    blueprints: EntityBlueprint[],
+    healthCheckers: EntityHealthResult[],
     classicWorkflows: ClassicWorkflow[],
     entityDisplayMap: Map<string, string>,
     allFlows: Flow[] = []
@@ -517,11 +517,11 @@ export class CrossEntityAnalyzer {
     // Build allFlowsById from ALL flows (both entity-scoped and unscoped)
     // for child flow resolution
     const allFlowsById = new Map<string, { flow: Flow; sourceEntity: string }>();
-    for (const bp of blueprints) {
-      for (const flow of bp.flows) {
+    for (const hc of healthCheckers) {
+      for (const flow of hc.flows) {
         allFlowsById.set(flow.id.toLowerCase(), {
           flow,
-          sourceEntity: bp.entity.LogicalName.toLowerCase(),
+          sourceEntity: hc.entity.LogicalName.toLowerCase(),
         });
       }
     }
@@ -536,12 +536,12 @@ export class CrossEntityAnalyzer {
       }
     }
 
-    // Scan all blueprints' flows (entity-scoped flows)
-    for (const sourceBp of blueprints) {
-      const sourceEntity = sourceBp.entity.LogicalName.toLowerCase();
+    // Scan all health checkers' flows (entity-scoped flows)
+    for (const sourceHc of healthCheckers) {
+      const sourceEntity = sourceHc.entity.LogicalName.toLowerCase();
       const sourceDisplayName = entityDisplayMap.get(sourceEntity) || sourceEntity;
 
-      for (const flow of sourceBp.flows) {
+      for (const flow of sourceHc.flows) {
         // Direct dataverse actions
         for (const action of flow.definition.dataverseActions ?? []) {
           if (action.isUnbound) continue; // handled separately in collectUnboundChainLinks
@@ -585,18 +585,18 @@ export class CrossEntityAnalyzer {
       }
     }
 
-    // Scan unscoped flows: scheduled, manual, or flows whose entity is not in blueprints.
-    // These flows never appear in bp.flows but may write to Dataverse entities.
-    const blueprintScopedFlowIds = new Set<string>();
-    for (const bp of blueprints) {
-      for (const flow of bp.flows) {
-        blueprintScopedFlowIds.add(flow.id.toLowerCase());
+    // Scan unscoped flows: scheduled, manual, or flows whose entity is not in health checkers.
+    // These flows never appear in hc.flows but may write to Dataverse entities.
+    const healthCheckerScopedFlowIds = new Set<string>();
+    for (const hc of healthCheckers) {
+      for (const flow of hc.flows) {
+        healthCheckerScopedFlowIds.add(flow.id.toLowerCase());
       }
     }
 
     for (const flow of allFlows) {
       // Skip flows already scanned above
-      if (blueprintScopedFlowIds.has(flow.id.toLowerCase())) continue;
+      if (healthCheckerScopedFlowIds.has(flow.id.toLowerCase())) continue;
 
       // Determine source entity label from trigger type.
       // Dataverse returns primaryentity="none" (literal string) for flows without a primary entity.
@@ -784,7 +784,7 @@ export class CrossEntityAnalyzer {
    * given the entry point's operation and fields.
    */
   private buildActivationMap(
-    targetBp: EntityBlueprint,
+    targetBp: EntityHealthResult,
     ep: CrossEntityEntryPoint,
     entityDisplayMap: Map<string, string>,
     cwByEntity: Map<string, ClassicWorkflow[]>
@@ -963,7 +963,7 @@ export class CrossEntityAnalyzer {
    * Returns the first cross-entity write action found.
    */
   private detectDownstreamBranch(
-    actions: import('../types/blueprint.js').DataverseAction[],
+    actions: import('../types/healthChecker.js').DataverseAction[],
     sourceEntity: string,
     entityDisplayMap: Map<string, string>
   ): CrossEntityBranch | undefined {

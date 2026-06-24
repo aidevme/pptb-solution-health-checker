@@ -194,7 +194,7 @@ export function FetchDiagnosticsView({ entries }: Props) {
   if (entries.length === 0) {
     return (
       <div className={styles.noData}>
-        <Text>No fetch log available. Generate a blueprint to see diagnostics.</Text>
+        <Text>No fetch log available. Generate a health checker to see diagnostics.</Text>
       </div>
     );
   }

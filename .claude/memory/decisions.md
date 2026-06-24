@@ -59,7 +59,7 @@ Standard batchSize = 20; privilege queries batchSize = 10 (longer field paths). 
 ## [2026-02-11] — Static Imports for Reporters and ZipPackager
 
 **Status:** Accepted and implemented (since v0.7.2)
-All reporters and discovery classes in BlueprintGenerator must be statically imported. Dynamic `import()` creates chunks unreachable under `pptb-webview://`. **Technical spec:** PATTERN-007 in patterns-dataverse.md.
+All reporters and discovery classes in HealthCheckGenerator must be statically imported. Dynamic `import()` creates chunks unreachable under `pptb-webview://`. **Technical spec:** PATTERN-007 in patterns-dataverse.md.
 
 ---
 
@@ -162,7 +162,7 @@ Processors in `src/core/generators/processors/` call `discoverByIds()` via the `
 
 **Status:** Accepted — implementation pending
 
-**Decision:** Adding a new component type currently requires editing `BlueprintGenerator`, `MarkdownReporter`, `JsonReporter`, `HtmlReporter`, `ZipPackager`, the UI tab list, and analyzers — a violation of the Open/Closed Principle. A reporter templating pattern must be introduced incrementally to isolate per-component-type formatting.
+**Decision:** Adding a new component type currently requires editing `HealthCheckGenerator`, `MarkdownReporter`, `JsonReporter`, `HtmlReporter`, `ZipPackager`, the UI tab list, and analyzers — a violation of the Open/Closed Principle. A reporter templating pattern must be introduced incrementally to isolate per-component-type formatting.
 
 **Reason:** Audit identified this as S2 (Open/Closed) violation. Every new component type multiplies the edit surface.
 
@@ -177,8 +177,8 @@ Settled: 2026-03-14
 
 ### D-ARCH-001: ProcessorStep[] registration pattern
 Adding a new component type to the pipeline = one new entry in GENERATOR_STEPS array.
-Never add a hardcoded sequential call to BlueprintGenerator.generate().
-Source: BlueprintGenerator.ts + src/core/generators/processors/generatorSteps.ts
+Never add a hardcoded sequential call to HealthCheckGenerator.generate().
+Source: HealthCheckGenerator.ts + src/core/generators/processors/generatorSteps.ts
 Settled: 2026-03-14
 
 ---
@@ -193,7 +193,7 @@ Settled: 2026-03-14
 ---
 
 ### D-ARCH-003: ExportFacade separation
-BlueprintGenerator has no export concern. All export format generation is in ExportFacade.
+HealthCheckGenerator has no export concern. All export format generation is in ExportFacade.
 Source: src/core/exporters/ExportFacade.ts
 Settled: 2026-03-14
 
@@ -208,7 +208,7 @@ Settled: 2026-03-14
 
 ### D-ARCH-005: useScopeData() hook — UI layer isolation
 UI components never construct core classes directly (no new PptbDataverseClient(...) inside a component).
-All data loading goes through a hook: useScopeData, useBlueprint, etc.
+All data loading goes through a hook: useScopeData, useHeathChecker, etc.
 Source: src/hooks/useScopeData.ts
 Settled: 2026-03-14
 
@@ -240,5 +240,5 @@ Settled: 2026-03-14
 ### D-CODE-002: Discriminated union for loading state
 Standard pattern: phase: 'idle' | 'generating' | 'done' | 'error'
 Never use separate isLoading: boolean alongside error state.
-Reference: useBlueprint.ts
+Reference: useHealthChecker.ts
 Settled: 2026-03-14

@@ -1,6 +1,6 @@
-import type { IDataverseClient } from '../../dataverse/IDataverseClient.js';
+﻿import type { IDataverseClient } from '../../dataverse/IDataverseClient.js';
 import type { FetchLogger } from '../../utils/FetchLogger.js';
-import type { ProgressInfo, StepWarning } from '../../types/blueprint.js';
+import type { ProgressInfo, StepWarning } from '../../types/healthChecker.js';
 import { CustomConnectorDiscovery } from '../../discovery/CustomConnectorDiscovery.js';
 import type { CustomConnector } from '../../types/customConnector.js';
 import { checkForPartialFailures } from './processorUtils.js';

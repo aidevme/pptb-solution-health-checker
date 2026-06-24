@@ -154,32 +154,32 @@ Hello \*world\* with \[special\] characters\!
 **Input:**
 ```typescript
 const fileTree: FileNode = {
-  name: 'blueprint',
+  name: 'healthchecker',
   type: 'directory',
-  path: 'blueprint',
+  path: 'healthchecker',
   children: [
-    { name: 'README.md', type: 'file', path: 'blueprint/README.md' },
+    { name: 'README.md', type: 'file', path: 'healthchecker/README.md' },
     {
       name: 'summary',
       type: 'directory',
-      path: 'blueprint/summary',
+      path: 'healthchecker/summary',
       children: [
-        { name: 'metrics.md', type: 'file', path: 'blueprint/summary/metrics.md' },
-        { name: 'all-plugins.md', type: 'file', path: 'blueprint/summary/all-plugins.md' }
+        { name: 'metrics.md', type: 'file', path: 'healthchecker/summary/metrics.md' },
+        { name: 'all-plugins.md', type: 'file', path: 'healthchecker/summary/all-plugins.md' }
       ]
     },
     {
       name: 'entities',
       type: 'directory',
-      path: 'blueprint/entities',
+      path: 'healthchecker/entities',
       children: [
         {
           name: 'account',
           type: 'directory',
-          path: 'blueprint/entities/account',
+          path: 'healthchecker/entities/account',
           children: [
-            { name: 'overview.md', type: 'file', path: 'blueprint/entities/account/overview.md' },
-            { name: 'plugins.md', type: 'file', path: 'blueprint/entities/account/plugins.md' }
+            { name: 'overview.md', type: 'file', path: 'healthchecker/entities/account/overview.md' },
+            { name: 'plugins.md', type: 'file', path: 'healthchecker/entities/account/plugins.md' }
           ]
         }
       ]
@@ -191,7 +191,7 @@ MarkdownFormatter.formatFileTree(fileTree);
 
 **Output:**
 ```
-blueprint/
+healthchecker/
 ├── README.md
 ├── summary/
 │   ├── metrics.md

@@ -1,4 +1,4 @@
-# Supported Components — Power Platform Solution Blueprint
+# Supported Components — Power Platform Solution Health Checker
 
 PPSB discovers and documents Dataverse environments across a growing range of component types. This document lists every component type by coverage status — Supported (full discovery and export), Partial (limited coverage), and Planned (not yet implemented).
 

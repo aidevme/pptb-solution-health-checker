@@ -63,6 +63,7 @@ export { PluginPackagesList } from './PluginPackagesList';
 export { PluginsList } from './PluginsList';
 export { ProcessingScreen } from './ProcessingScreen';
 export { RelationshipsView } from './RelationshipsView';
+export { RulesList } from './RulesList';
 export { ResultsDashboard } from './ResultsDashboard';
 export { SchemaView } from './SchemaView';
 export { ScopeSelector } from './ScopeSelector';

@@ -1,5 +1,5 @@
-import { resolveEntityName } from './entityName.js';
-import type { PluginStep, Flow, WebResource, FormDefinition, BusinessRule } from '../types/blueprint.js';
+﻿import { resolveEntityName } from './entityName.js';
+import type { PluginStep, Flow, WebResource, FormDefinition, BusinessRule } from '../types/healthChecker.js';
 import type { ClassicWorkflow } from '../types/classicWorkflow.js';
 import type { BusinessProcessFlow } from '../types/businessProcessFlow.js';
 import type { CustomAPI } from '../types/customApi.js';

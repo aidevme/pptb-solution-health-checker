@@ -1,16 +1,16 @@
-import { version } from '../../../package.json';
-import type { BlueprintResult } from '../types/blueprint.js';
+﻿import { version } from '../../../package.json';
+import type { HealthCheckerResult } from '../types/healthChecker.js';
 import type { IReporter } from './IReporter.js';
 
 interface JsonExportWrapper {
   exportVersion: string;
   exportedAt: string;
   toolVersion: string;
-  blueprint: Record<string, unknown>;
+  healthChecker: Record<string, unknown>;
 }
 
 /**
- * Exports a {@link BlueprintResult} as a pretty-printed JSON string wrapped in version metadata.
+ * Exports a {@link HealthCheckerResult} as a pretty-printed JSON string wrapped in version metadata.
  *
  * @remarks
  * Environment variable `currentValue` and `defaultValue` fields are intentionally omitted
@@ -24,20 +24,20 @@ interface JsonExportWrapper {
 export class JsonReporter implements IReporter<string> {
   private readonly toolVersion = version;
 
-  generate(result: BlueprintResult): string {
+  generate(result: HealthCheckerResult): string {
     // Create export wrapper with metadata
     const exportWrapper: JsonExportWrapper = {
       exportVersion: '1.0',
       exportedAt: new Date().toISOString(),
       toolVersion: this.toolVersion,
-      blueprint: this.serializeResult(result),
+      healthChecker: this.serializeResult(result),
     };
 
     // Pretty-print with 2-space indentation
     return JSON.stringify(exportWrapper, this.jsonReplacer, 2);
   }
 
-  private serializeResult(result: BlueprintResult): Record<string, unknown> {
+  private serializeResult(result: HealthCheckerResult): Record<string, unknown> {
     return {
       metadata: {
         ...result.metadata,

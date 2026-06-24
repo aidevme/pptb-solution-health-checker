@@ -179,7 +179,7 @@ Promoted → AUDIT-006 in patterns-ui.md ([2026-03-14])
 2. `CHANGELOG.md` — the latest versioned entry header (e.g. `## [1.1.0] — 2026-03-12`)
 3. `README.md` — the shields.io version badge at the top and any inline version references
 4. `src/core/reporters/JsonReporter.ts` — the `private readonly toolVersion` field (line ~24). This is hardcoded and is NOT derived from `package.json`. It must be manually updated on every release.
-5. `docs/user-guide.md` — the version string in the subtitle on line 3 (e.g. `Complete guide for using Power Platform Solution Blueprint (PPSB) v1.1.0`)
+5. `docs/user-guide.md` — the version string in the subtitle on line 3 (e.g. `Complete guide for using Power Platform Solution Health Checker (PPSB) v1.1.0`)
 
 The Document Updater must update all five in the same release step. Mismatched versions across any of these files is a release blocker and must be resolved before the orchestrator prints the git tag command.
 **Context:** (1–3) Added 2026-02-26 after noticing the README badge was missing from the release workflow. (4–5) Added 2026-03-13: `JsonReporter.ts` contains a hardcoded `toolVersion` class field that agents repeatedly overlooked at release time; `docs/user-guide.md` line 3 subtitle also embeds the version string and was equally overlooked.
@@ -331,11 +331,11 @@ var _esc = function(s) {
 
 ---
 
-## [2026-03-07] — CrossEntityAnalyzer must use source-centric scan, not blueprint-centric scan
+## [2026-03-07] — CrossEntityAnalyzer must use source-centric scan, not healthchecker-centric scan
 
 **Affects:** Developer, Architect
 **Severity:** High
-**Rule:** When discovering flow entry points for cross-entity automation tracing, always scan flows as the starting point and group by their *target* entity. Do NOT iterate over blueprints as targets and match flows into them — this misses flows that write to entities not in the current blueprint scope (e.g., out-of-scope entities like `custom_entity`, `connections`). Additionally, pass the full flat `flows` array separately to handle unscoped flows (scheduled, manual, no primary entity) which never appear on any `EntityBlueprint.flows` list.
+**Rule:** When discovering flow entry points for cross-entity automation tracing, always scan flows as the starting point and group by their *target* entity. Do NOT iterate over healthcheckers as targets and match flows into them — this misses flows that write to entities not in the current healthchecker scope (e.g., out-of-scope entities like `custom_entity`, `connections`). Additionally, pass the full flat `flows` array separately to handle unscoped flows (scheduled, manual, no primary entity) which never appear on any `EntityBlueprint.flows` list.
 **Context:** The initial implementation of `discoverEntryPoints` iterated over blueprints as target entities, so flows pointing at out-of-scope targets were silently dropped. The fix (`discoverAllEntryPoints`) groups by target entity derived from flow definitions directly — even entities not in blueprints appear in the chain. A third `allFlows` argument was added to `CrossEntityAnalyzer.analyze()` to cover unscoped flows.
 **Example:**
 - Wrong: `for (const bp of blueprints) { matchFlowsInto(bp) }` — drops out-of-scope targets

@@ -1,5 +1,5 @@
-/** Static helpers for producing CommonMark-compatible Markdown content. */
-import type { FileNode } from '../../types/blueprint.js';
+﻿/** Static helpers for producing CommonMark-compatible Markdown content. */
+import type { FileNode } from '../../types/healthChecker.js';
 
 export class MarkdownFormatter {
   /**

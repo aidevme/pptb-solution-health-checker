@@ -1,5 +1,5 @@
-import type { FetchLogger } from '../../utils/FetchLogger.js';
-import type { ProgressInfo, StepWarning, Flow } from '../../types/blueprint.js';
+﻿import type { FetchLogger } from '../../utils/FetchLogger.js';
+import type { ProgressInfo, StepWarning, Flow } from '../../types/healthChecker.js';
 import type { IDiscoverer } from '../../discovery/IDiscoverer.js';
 import { checkForPartialFailures } from './processorUtils.js';
 

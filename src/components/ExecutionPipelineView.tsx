@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+﻿import { useState, useMemo } from 'react';
 import {
   Text,
   makeStyles,
@@ -10,7 +10,7 @@ import {
   Button,
 } from '@fluentui/react-components';
 import { Warning20Regular } from '@fluentui/react-icons';
-import type { EntityBlueprint, ClassicWorkflow } from '../core';
+import type { EntityHealthResult, ClassicWorkflow } from '../core';
 import { ExecutionOrderCalculator, PerformanceAnalyzer } from '../core';
 import type { ExecutionPipeline } from '../core';
 import { ExecutionTimeline } from './ExecutionTimeline';
@@ -49,12 +49,12 @@ const useStyles = makeStyles({
 });
 
 export interface ExecutionPipelineViewProps {
-  blueprint: EntityBlueprint;
+  healthCheckerResult: EntityHealthResult;
   classicWorkflows?: ClassicWorkflow[];
   onViewClassicWorkflows?: () => void;
 }
 
-export function ExecutionPipelineView({ blueprint, classicWorkflows = [], onViewClassicWorkflows }: ExecutionPipelineViewProps) {
+export function ExecutionPipelineView({ healthCheckerResult, classicWorkflows = [], onViewClassicWorkflows }: ExecutionPipelineViewProps) {
   const styles = useStyles();
   const [selectedEvent, setSelectedEvent] = useState<string | null>(null);
 
@@ -62,13 +62,13 @@ export function ExecutionPipelineView({ blueprint, classicWorkflows = [], onView
   const availableEvents = useMemo(() => {
     const calculator = new ExecutionOrderCalculator();
     return calculator.getEntityEvents(
-      blueprint.entity.LogicalName,
-      blueprint.plugins,
-      blueprint.flows,
-      blueprint.businessRules,
-      blueprint.forms
+      healthCheckerResult.entity.LogicalName,
+      healthCheckerResult.plugins,
+      healthCheckerResult.flows,
+      healthCheckerResult.businessRules,
+      healthCheckerResult.forms
     );
-  }, [blueprint]);
+  }, [healthCheckerResult]);
 
   // Set default event on mount
   useMemo(() => {
@@ -83,12 +83,12 @@ export function ExecutionPipelineView({ blueprint, classicWorkflows = [], onView
 
     const calculator = new ExecutionOrderCalculator();
     const basePipeline = calculator.calculatePipeline(
-      blueprint.entity.LogicalName,
+      healthCheckerResult.entity.LogicalName,
       selectedEvent,
-      blueprint.plugins,
-      blueprint.flows,
-      blueprint.businessRules,
-      blueprint.forms
+      healthCheckerResult.plugins,
+      healthCheckerResult.flows,
+      healthCheckerResult.businessRules,
+      healthCheckerResult.forms
     );
 
     // Analyze performance risks
@@ -96,14 +96,14 @@ export function ExecutionPipelineView({ blueprint, classicWorkflows = [], onView
     basePipeline.performanceRisks = analyzer.analyzePerformanceRisks(basePipeline);
 
     return basePipeline;
-  }, [selectedEvent, blueprint]);
+  }, [selectedEvent, healthCheckerResult]);
 
   // Filter classic workflows for this entity
   const entityClassicWorkflows = useMemo(() => {
     return classicWorkflows.filter(
-      (wf) => wf.entity.toLowerCase() === blueprint.entity.LogicalName.toLowerCase()
+      (wf) => wf.entity.toLowerCase() === healthCheckerResult.entity.LogicalName.toLowerCase()
     );
-  }, [classicWorkflows, blueprint.entity.LogicalName]);
+  }, [classicWorkflows, healthCheckerResult.entity.LogicalName]);
 
   if (availableEvents.length === 0) {
     return (

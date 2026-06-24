@@ -1,7 +1,8 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import {
   Text,
   Title2,
+  Subtitle2,
   Button,
   ProgressBar,
   Spinner,
@@ -12,24 +13,41 @@ import {
 import {
   CheckmarkCircle16Regular,
   ErrorCircle16Regular,
-  ArrowCounterclockwise16Regular,
-  ArrowDown16Regular,
+  Warning16Regular,
+  Info16Regular,
   Record16Regular,
-  Beaker16Regular,
 } from '@fluentui/react-icons';
-import type { ProgressInfo, FetchLogEntry } from '../core';
+import { RULES, RULE_GROUP_ORDER } from '../core/rules/rulesData';
+import type { RuleGroup, RuleEvalResult } from '../core/rules/rulesData';
 import { Footer } from './Footer';
 
-// Fixed column width for the step-name column in the API call feed.
-// 130px is intentional: it keeps step names aligned without wrapping
-// in the compact monospace feed while leaving most width for the entity column.
-const FETCH_STEP_COLUMN_WIDTH = '130px';
+const RULE_ID_COLUMN_WIDTH = '100px';
+const EVAL_START_DELAY = 1500;
+const EVAL_INTERVAL = 110;
+
+const GROUP_SHORT_LABELS: Record<RuleGroup, string> = {
+  schema: 'Schema & Data',
+  plugins: 'Plugins & Code',
+  flows: 'Flows & Automation',
+  connections: 'Connections & Env Vars',
+  alm: 'ALM & Layering',
+  security: 'Security Model',
+  capacity: 'Capacity & Governance',
+  webresource: 'Web Resources',
+};
+
+const GROUP_RANGES = RULE_GROUP_ORDER.map((group) => {
+  const firstIdx = RULES.findIndex((r) => r.group === group);
+  const count = (RULES as readonly (typeof RULES[number])[]).filter((r) => r.group === group).length;
+  return { group, firstIdx, lastIdx: firstIdx + count - 1, count };
+});
+
 
 const useStyles = makeStyles({
   container: {
     padding: tokens.spacingVerticalXXL,
     width: '95%',
-    maxWidth: '1200px',
+    maxWidth: '860px',
     margin: '0 auto',
     minHeight: '100vh',
     boxSizing: 'border-box',
@@ -43,11 +61,12 @@ const useStyles = makeStyles({
   },
   header: {
     textAlign: 'center',
-  },
-  progressSection: {
     display: 'flex',
     flexDirection: 'column',
-    gap: tokens.spacingVerticalM,
+    gap: tokens.spacingVerticalXS,
+  },
+  subtitle: {
+    color: tokens.colorNeutralForeground3,
   },
   currentActivity: {
     display: 'flex',
@@ -57,128 +76,156 @@ const useStyles = makeStyles({
     backgroundColor: tokens.colorNeutralBackground2,
     borderRadius: tokens.borderRadiusMedium,
   },
-  fetchFeed: {
-    display: 'flex',
-    flexDirection: 'column',
-    maxHeight: '180px', // fixed scroll viewport height — no token equivalent
-    overflowY: 'auto',
-    padding: `${tokens.spacingVerticalS} ${tokens.spacingHorizontalM}`,
-    backgroundColor: tokens.colorNeutralBackground1,
-    borderRadius: tokens.borderRadiusMedium,
-    border: `1px solid ${tokens.colorNeutralStroke2}`,
-  },
-  fetchHint: {
-    fontSize: tokens.fontSizeBase200,
-    color: tokens.colorNeutralForeground3,
-    textAlign: 'center' as const,
-  },
-  fetchHeader: {
+  sectionHeader: {
     display: 'flex',
     alignItems: 'center',
     gap: tokens.spacingHorizontalS,
   },
-  fetchSectionLabel: {
+  sectionLabel: {
     fontSize: tokens.fontSizeBase200,
     color: tokens.colorNeutralForeground3,
-  },
-  fetchRow: {
-    display: 'grid',
-    gridTemplateColumns: `14px ${FETCH_STEP_COLUMN_WIDTH} 1fr auto`,
-    gap: tokens.spacingHorizontalXS,
-    alignItems: 'baseline',
-    fontFamily: tokens.fontFamilyMonospace,
-    fontSize: tokens.fontSizeBase200,
-    lineHeight: '1.5', // unitless line-height for monospace readability — no Fluent token equivalent
-  },
-  fetchRowNormal: {
-    color: tokens.colorNeutralForeground2,
-  },
-  fetchRowError: {
-    color: tokens.colorStatusDangerForeground1,
-  },
-  fetchRowWarning: {
-    color: tokens.colorStatusWarningForeground1,
-  },
-  fetchStep: {
-    color: tokens.colorNeutralForeground3,
-    overflow: 'hidden',
-    textOverflow: 'ellipsis',
-    whiteSpace: 'nowrap',
-  },
-  fetchEntity: {
-    overflow: 'hidden',
-    textOverflow: 'ellipsis',
-    whiteSpace: 'nowrap',
-  },
-  fetchMeta: {
-    color: tokens.colorNeutralForeground3,
-    whiteSpace: 'nowrap',
   },
   progressText: {
     color: tokens.colorNeutralForeground3,
     fontSize: tokens.fontSizeBase300,
   },
+  categoryList: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: tokens.spacingVerticalXXS,
+    maxHeight: '480px',
+    overflowY: 'auto',
+    paddingRight: tokens.spacingHorizontalXS,
+  },
+  categoryGroup: {
+    display: 'flex',
+    flexDirection: 'column',
+  },
+  categoryHeader: {
+    display: 'grid',
+    gridTemplateColumns: '16px 1fr auto auto',
+    gap: tokens.spacingHorizontalS,
+    alignItems: 'center',
+    padding: `${tokens.spacingVerticalXXS} ${tokens.spacingHorizontalXS}`,
+    borderRadius: tokens.borderRadiusSmall,
+  },
+  catActive: {
+    backgroundColor: tokens.colorNeutralBackground2,
+  },
+  catPending: {
+    opacity: '0.45',
+  },
+  catName: {
+    fontSize: tokens.fontSizeBase200,
+    fontWeight: tokens.fontWeightSemibold,
+    overflow: 'hidden',
+    textOverflow: 'ellipsis',
+    whiteSpace: 'nowrap',
+  },
+  catCount: {
+    fontSize: tokens.fontSizeBase100,
+    color: tokens.colorNeutralForeground3,
+    fontFamily: tokens.fontFamilyMonospace,
+    whiteSpace: 'nowrap',
+  },
+  ruleRows: {
+    display: 'flex',
+    flexDirection: 'column',
+    paddingLeft: tokens.spacingHorizontalXXL,
+    paddingBottom: tokens.spacingVerticalXS,
+  },
+  ruleRow: {
+    display: 'grid',
+    gridTemplateColumns: `14px ${RULE_ID_COLUMN_WIDTH} 1fr auto`,
+    gap: tokens.spacingHorizontalXS,
+    alignItems: 'baseline',
+    fontFamily: tokens.fontFamilyMonospace,
+    fontSize: tokens.fontSizeBase100,
+    lineHeight: '1.6',
+    color: tokens.colorNeutralForeground2,
+  },
+  ruleId: {
+    overflow: 'hidden',
+    textOverflow: 'ellipsis',
+    whiteSpace: 'nowrap',
+    color: tokens.colorNeutralForeground3,
+  },
+  ruleTitle: {
+    overflow: 'hidden',
+    textOverflow: 'ellipsis',
+    whiteSpace: 'nowrap',
+  },
+  rowError: { color: tokens.colorStatusDangerForeground1 },
+  rowWarn: { color: tokens.colorStatusWarningForeground1 },
+  rowPass: { color: tokens.colorNeutralForeground3 },
+  rowRunning: { color: tokens.colorBrandForeground1 },
   buttonContainer: {
     display: 'flex',
     justifyContent: 'center',
+    gap: tokens.spacingHorizontalM,
     marginTop: tokens.spacingVerticalL,
   },
 });
 
 export interface ProcessingScreenProps {
-  progress: ProgressInfo;
-  recentFetches?: FetchLogEntry[];
   onCancel: () => void;
+  onShowResult?: () => void;
+  onEvalComplete?: (results: RuleEvalResult[]) => void;
   isCancelling?: boolean;
 }
 
-export function ProcessingScreen({ progress, recentFetches = [], onCancel, isCancelling = false }: ProcessingScreenProps) {
+export function ProcessingScreen({ onCancel, onShowResult, onEvalComplete, isCancelling = false }: ProcessingScreenProps) {
   const styles = useStyles();
-  const feedRef = useRef<HTMLDivElement>(null);
+  const activeCategoryRef = useRef<HTMLDivElement>(null);
 
-  // Auto-scroll the fetch feed to the bottom as new entries arrive
+  const [evalResults, setEvalResults] = useState<RuleEvalResult[]>([]);
+  const [evalStarted, setEvalStarted] = useState(false);
+  const [evalCurrent, setEvalCurrent] = useState(0);
+
   useEffect(() => {
-    if (feedRef.current) {
-      feedRef.current.scrollTop = feedRef.current.scrollHeight;
+    activeCategoryRef.current?.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+  }, [evalCurrent]);
+
+  useEffect(() => {
+    if (isCancelling) return;
+    const t = setTimeout(() => setEvalStarted(true), EVAL_START_DELAY);
+    return () => clearTimeout(t);
+  }, [isCancelling]);
+
+  useEffect(() => {
+    if (!evalStarted || isCancelling || evalCurrent >= RULES.length) return;
+    const t = setTimeout(() => {
+      const rule = RULES[evalCurrent];
+      const rand = Math.random();
+      const hasFinding =
+        rule.severity === 'fail' ? rand < 0.7
+        : rule.severity === 'warn' ? rand < 0.5
+        : rand < 0.25;
+      setEvalResults((prev) => [
+        ...prev,
+        { id: rule.id, title: rule.title, group: rule.group, severity: rule.severity, effortToFix: rule.effortToFix, status: hasFinding ? 'finding' : 'pass' },
+      ]);
+      setEvalCurrent((prev) => prev + 1);
+    }, EVAL_INTERVAL);
+    return () => clearTimeout(t);
+  }, [evalStarted, evalCurrent, isCancelling]);
+
+  useEffect(() => {
+    if (evalCurrent >= RULES.length && evalResults.length === RULES.length) {
+      onEvalComplete?.(evalResults);
     }
-  }, [recentFetches]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [evalCurrent]);
 
-  const percentage = progress.total > 0 ? (progress.current / progress.total) * 100 : 0;
-
-  // Get component type label based on phase
-  const getComponentLabel = (phase: ProgressInfo['phase']): string => {
-    switch (phase) {
-      case 'schema':
-        return 'entities';
-      case 'plugins':
-        return 'plugins';
-      case 'flows':
-        return 'flows';
-      case 'business-rules':
-        return 'business rules';
-      case 'apps':
-        return 'apps';
-      default:
-        return 'items';
-    }
-  };
-
-  const componentLabel = getComponentLabel(progress.phase);
-
-  const failedCount = recentFetches.filter(e => e.status === 'failed').length;
-  const retriedCount = recentFetches.filter(e => e.status === 'retried' || e.status === 'batch-reduced').length;
+  const evalPercentage = RULES.length > 0 ? evalCurrent / RULES.length : 0;
+  const totalFindings = evalResults.filter((r) => r.status === 'finding').length;
+  const evalComplete = evalCurrent >= RULES.length;
 
   return (
     <div className={styles.container}>
       <div className={styles.header}>
-        <Title2>Generating Solution Blueprint</Title2>
-      </div>
-
-      <div className={styles.progressSection}>
-        <ProgressBar value={percentage / 100} />
-        <Text className={styles.progressText}>
-          {progress.current} of {progress.total} {componentLabel} processed ({Math.round(percentage)}%)
-        </Text>
+        <Title2>Analysing Solution Health</Title2>
+        <Subtitle2 className={styles.subtitle}>Evaluating governance rules against your selected solutions</Subtitle2>
       </div>
 
       {isCancelling && (
@@ -188,71 +235,99 @@ export function ProcessingScreen({ progress, recentFetches = [], onCancel, isCan
         </div>
       )}
 
-      {!isCancelling && progress.phase !== 'discovering' && (
-        <div className={styles.currentActivity}>
-          <Spinner size="tiny" />
-          <Text weight="semibold">{progress.message}</Text>
-        </div>
-      )}
-
-      {!isCancelling && progress.phase === 'discovering' && (
-        <div className={styles.currentActivity}>
-          <Spinner size="small" />
-          <Text weight="semibold">{progress.message}</Text>
-        </div>
-      )}
-
-      {recentFetches.length > 0 && (
+      {!isCancelling && (
         <>
-          <div className={styles.fetchHeader}>
-            <Text className={styles.fetchSectionLabel}>
-              API Calls
-            </Text>
-            {failedCount > 0 && <Badge color="danger" shape="rounded" size="small">{failedCount} failed</Badge>}
-            {retriedCount > 0 && failedCount === 0 && <Badge color="warning" shape="rounded" size="small">{retriedCount} retried</Badge>}
+          <div className={styles.sectionHeader}>
+            <Text className={styles.sectionLabel}>Governance Rules</Text>
+            {totalFindings > 0 && (
+              <Badge color="danger" shape="rounded" size="small">
+                {totalFindings} finding{totalFindings !== 1 ? 's' : ''}
+              </Badge>
+            )}
+            {evalComplete && totalFindings === 0 && (
+              <Badge color="success" shape="rounded" size="small">all passed</Badge>
+            )}
           </div>
-          <div className={styles.fetchFeed} ref={feedRef}>
-            {recentFetches.slice(-20).map(entry => {
-              const isError = entry.status === 'failed';
-              const isWarning = entry.status === 'retried' || entry.status === 'batch-reduced';
-              const StatusIcon = entry.status === 'success' ? CheckmarkCircle16Regular
-                : entry.status === 'failed' ? ErrorCircle16Regular
-                : entry.status === 'retried' ? ArrowCounterclockwise16Regular
-                : entry.status === 'batch-reduced' ? ArrowDown16Regular
-                : Record16Regular;
-              const batchLabel = entry.batchTotal > 0
-                ? `[${entry.batchIndex + 1}/${entry.batchTotal}]`
-                : `#${entry.batchIndex + 1}`;
-              const suffix = entry.resultCount !== undefined
-                ? ` — ${entry.durationMs}ms, ${entry.resultCount} records`
-                : ` — ${entry.durationMs}ms`;
+
+          <ProgressBar value={evalPercentage} />
+          <Text className={styles.progressText}>
+            {evalCurrent} of {RULES.length} rules evaluated ({Math.round(evalPercentage * 100)}%)
+          </Text>
+
+          <div className={styles.categoryList}>
+            {GROUP_RANGES.map(({ group, firstIdx, lastIdx, count }) => {
+              const isDone = evalStarted && evalCurrent > lastIdx;
+              const isActive = evalStarted && evalCurrent >= firstIdx && evalCurrent <= lastIdx;
+              const isPending = !isDone && !isActive;
+
+              const doneInGroup = isDone
+                ? evalResults.slice(firstIdx, lastIdx + 1)
+                : isActive
+                  ? evalResults.slice(firstIdx, evalCurrent)
+                  : [];
+              const findings = doneInGroup.filter((r) => r.status === 'finding').length;
+
+              const headerIcon = isDone
+                ? (findings > 0
+                  ? <ErrorCircle16Regular style={{ color: tokens.colorStatusDangerForeground1 }} />
+                  : <CheckmarkCircle16Regular style={{ color: tokens.colorStatusSuccessForeground1 }} />)
+                : isActive
+                  ? <Spinner size="tiny" />
+                  : <Record16Regular style={{ color: tokens.colorNeutralForeground3 }} />;
 
               return (
                 <div
-                  key={entry.id}
-                  className={`${styles.fetchRow} ${isError ? styles.fetchRowError : isWarning ? styles.fetchRowWarning : styles.fetchRowNormal}`}
+                  key={group}
+                  className={styles.categoryGroup}
+                  ref={isActive ? activeCategoryRef : undefined}
                 >
-                  <StatusIcon style={{ flexShrink: 0, marginTop: '1px' }} />
-                  <span className={styles.fetchStep}>
-                    {entry.step}
-                  </span>
-                  <span className={styles.fetchEntity}>
-                    {entry.filterSummary && entry.filterSummary !== entry.entitySet
-                      ? entry.filterSummary
-                      : entry.entitySet}
-                    {entry.errorMessage && ` — ${entry.errorMessage}`}
-                  </span>
-                  <span className={styles.fetchMeta}>
-                    {batchLabel}{suffix}
-                  </span>
+                  <div className={`${styles.categoryHeader} ${isActive ? styles.catActive : isPending ? styles.catPending : ''}`}>
+                    {headerIcon}
+                    <span className={styles.catName}>{GROUP_SHORT_LABELS[group]}</span>
+                    <span className={styles.catCount}>{doneInGroup.length}/{count}</span>
+                    {isDone && (
+                      <Badge color={findings > 0 ? 'danger' : 'success'} shape="rounded" size="small">
+                        {findings > 0 ? `${findings} finding${findings !== 1 ? 's' : ''}` : 'passed'}
+                      </Badge>
+                    )}
+                    {(isActive || isPending) && <span />}
+                  </div>
+
+                  {isActive && (
+                    <div className={styles.ruleRows}>
+                      {doneInGroup.map((r) => {
+                        const isFinding = r.status === 'finding';
+                        const Icon = isFinding
+                          ? (r.severity === 'fail' ? ErrorCircle16Regular
+                            : r.severity === 'warn' ? Warning16Regular
+                            : Info16Regular)
+                          : CheckmarkCircle16Regular;
+                        const rowStyle = isFinding
+                          ? (r.severity === 'fail' ? styles.rowError : styles.rowWarn)
+                          : styles.rowPass;
+                        return (
+                          <div key={r.id} className={`${styles.ruleRow} ${rowStyle}`}>
+                            <Icon style={{ flexShrink: 0, marginTop: '1px' }} />
+                            <span className={styles.ruleId}>{r.id}</span>
+                            <span className={styles.ruleTitle}>{r.title}</span>
+                            <span>{isFinding ? r.severity : 'pass'}</span>
+                          </div>
+                        );
+                      })}
+                      {evalCurrent >= firstIdx && evalCurrent <= lastIdx && (
+                        <div className={`${styles.ruleRow} ${styles.rowRunning}`}>
+                          <Spinner size="tiny" />
+                          <span className={styles.ruleId}>{RULES[evalCurrent].id}</span>
+                          <span className={styles.ruleTitle}>{RULES[evalCurrent].title}</span>
+                          <span>—</span>
+                        </div>
+                      )}
+                    </div>
+                  )}
                 </div>
               );
             })}
           </div>
-          <Text className={styles.fetchHint}>
-            <Beaker16Regular style={{ verticalAlign: 'middle', marginRight: tokens.spacingHorizontalXS }} />
-            Full API call log available in the <strong>Fetch Log</strong> tab once generation completes.
-          </Text>
         </>
       )}
 
@@ -260,6 +335,11 @@ export function ProcessingScreen({ progress, recentFetches = [], onCancel, isCan
         <Button appearance="secondary" onClick={onCancel} disabled={isCancelling}>
           Cancel
         </Button>
+        {onShowResult && (
+          <Button appearance="primary" onClick={onShowResult} disabled={isCancelling}>
+            Show Result
+          </Button>
+        )}
       </div>
 
       <Footer />

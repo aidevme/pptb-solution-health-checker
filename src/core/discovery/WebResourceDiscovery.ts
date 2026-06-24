@@ -1,5 +1,5 @@
-import type { IDataverseClient } from '../dataverse/IDataverseClient.js';
-import type { WebResource } from '../types/blueprint.js';
+﻿import type { IDataverseClient } from '../dataverse/IDataverseClient.js';
+import type { WebResource } from '../types/healthChecker.js';
 import type { IDiscoverer } from './IDiscoverer.js';
 import type { FetchLogger } from '../utils/FetchLogger.js';
 import { JavaScriptParser } from '../parsers/JavaScriptParser.js';

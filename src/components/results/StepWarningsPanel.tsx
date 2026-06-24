@@ -1,12 +1,33 @@
-import { Badge, Text, tokens } from '@fluentui/react-components';
+﻿import { Badge, Text, tokens } from '@fluentui/react-components';
 import { Warning24Regular, ErrorCircle24Regular } from '@fluentui/react-icons';
-import type { BlueprintResult } from '../../core';
+import type { HealthCheckerResult } from '../../core';
 import { useStepWarningsPanelStyles } from '../../styles';
 
 export interface StepWarningsPanelProps {
-  stepWarnings: NonNullable<BlueprintResult['stepWarnings']>;
+  /**
+   * Caller must pass a non-empty array; rendering an empty list is a no-op from
+   * the parent's perspective but will still render a panel with an empty body.
+   *
+   * @remarks
+   * The array is the unwrapped `stepWarnings` field from {@link HealthCheckerResult}.
+   * The `NonNullable` unwrap means callers must guard for `undefined` before mounting
+   * this component — the panel itself has no empty-state fallback.
+   */
+  stepWarnings: NonNullable<HealthCheckerResult['stepWarnings']>;
 }
 
+/**
+ * Displays a panel summarising discovery steps that failed or returned partial data.
+ *
+ * @remarks
+ * The panel severity escalates from warning (amber) to error (red) when any entry has
+ * `partial: false` — meaning the step produced no usable data at all rather than just
+ * incomplete data. The header icon and colour token both change to reflect this distinction.
+ *
+ * Entries are indexed by array position (`key={i}`) because step names are not guaranteed
+ * unique — the same discovery step can fail multiple times across batches and push separate
+ * entries with the same `step` string.
+ */
 export function StepWarningsPanel({ stepWarnings }: StepWarningsPanelProps): JSX.Element {
   const styles = useStepWarningsPanelStyles();
   const hasFullFailures = stepWarnings.some((w) => !w.partial);

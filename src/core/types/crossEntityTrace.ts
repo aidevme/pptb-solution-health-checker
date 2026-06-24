@@ -3,7 +3,7 @@
  *
  * These types model the 4-layer analysis that traces automation chains
  * across entity boundaries:
- *   Layer 1 — Discovery (entity blueprints, raw data)
+ *   Layer 1 — Discovery (entity health checker, raw data)
  *   Layer 2 — Entry Points (which automations on other entities write to THIS entity)
  *   Layer 3 — Activation Map (which of THIS entity's automations fire for each entry point)
  *   Layer 4 — Risk Detection (performance, circular ref, deep sync chain)
@@ -142,7 +142,7 @@ export interface CrossEntityAnalysisResult {
   totalEntryPoints: number;
   totalBranches: number;
   risks: CrossEntityRisk[];
-  /** All blueprint entities that have any automation — superset of entityViews */
+  /** All health checker entities that have any automation — superset of entityViews */
   allEntityPipelines: Map<string, EntityAutomationPipeline>;
   /** Count of plugins with no filteringAttributes that fire on ALL updates */
   noFilterPluginCount: number;

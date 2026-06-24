@@ -1,4 +1,4 @@
-import type { JavaScriptAnalysis, ExternalCall } from '../types/blueprint.js';
+﻿import type { JavaScriptAnalysis, ExternalCall } from '../types/healthChecker.js';
 
 /**
  * Analyses JavaScript web resource content via regex-based static analysis (no AST).

@@ -1,5 +1,5 @@
-import type { IDataverseClient } from '../dataverse/IDataverseClient.js';
-import type { DetailedEntityMetadata } from '../types/blueprint.js';
+﻿import type { IDataverseClient } from '../dataverse/IDataverseClient.js';
+import type { DetailedEntityMetadata } from '../types/healthChecker.js';
 
 /**
  * Retrieves detailed entity schema from the Dataverse metadata API for a single entity by logical name.

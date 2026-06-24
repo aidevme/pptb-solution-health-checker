@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Common interface for all ID-based batch discovery classes.
  *
  * Implemented by: FlowDiscovery, ClassicWorkflowDiscovery,
@@ -17,7 +17,7 @@
  * - FieldSecurityProfileDiscovery: requires separate profile + permissions queries
  *
  * If generic orchestration is ever needed for these types, an adapter class should be
- * created (e.g. EntityDiscoveryAdapter implements IDiscoverer<EntityBlueprint>) that
+ * created (e.g. EntityDiscoveryAdapter implements IDiscoverer<EntityHealthResult>) that
  * wraps the specific discovery logic behind the standard interface.
  */
 export interface IDiscoverer<T> {

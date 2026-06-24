@@ -1,7 +1,7 @@
 # PPSB Claude Code Setup Guide
 
 > Reference for the agent system, memory files, skills, and session workflows
-> for the Power Platform Solution Blueprint (PPSB) project.
+> for the Power Platform Solution Health Checker (PPSB) project.
 
 ---
 

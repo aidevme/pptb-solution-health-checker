@@ -325,10 +325,10 @@ const [progress, setProgress] = useState<Progress | null>(null);
 - No complex shared state
 - Simpler to understand and maintain
 
-### Custom Hook: useBlueprintGeneration
+### Custom Hook: useHealthChekerGeneration
 
 ```typescript
-function useBlueprintGeneration() {
+function useHealthChekerGeneration() {
   const [result, setResult] = useState<BlueprintResult | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
   const [progress, setProgress] = useState<Progress | null>(null);

@@ -1,5 +1,5 @@
-/**
- * Blueprint generation types for PPSB
+﻿/**
+ * Health checker generation types for PPSB
  */
 import type { PluginStep } from '../types.js';
 import type { EntityFieldSecurity } from '../discovery/FieldSecurityProfileDiscovery.js';
@@ -10,7 +10,7 @@ import type { CustomPage } from './customPage.js';
 import type { ModelDrivenApp } from './modelDrivenApp.js';
 
 /**
- * Progress phases during blueprint generation
+ * Progress phases during health checker generation
  */
 export type ProgressPhase =
   | 'discovering'
@@ -22,7 +22,7 @@ export type ProgressPhase =
   | 'complete';
 
 /**
- * Progress information during blueprint generation
+ * Progress information during health checker generation
  */
 export interface ProgressInfo {
   phase: ProgressPhase;
@@ -33,7 +33,7 @@ export interface ProgressInfo {
 }
 
 /**
- * Options for blueprint generation
+ * Options for health checker generation
  */
 export interface GeneratorOptions {
   includeSystemEntities: boolean;
@@ -448,9 +448,9 @@ export interface PerformanceRisk {
 }
 
 /**
- * Complete blueprint for a single entity
+ * Complete health checker result for a single entity
  */
-export interface EntityBlueprint {
+export interface EntityHealthResult {
   entity: DetailedEntityMetadata;
   plugins: PluginStep[];
   flows: Flow[];
@@ -462,9 +462,9 @@ export interface EntityBlueprint {
 }
 
 /**
- * Summary of blueprint generation
+ * Summary of health checker generation
  */
-export interface BlueprintSummary {
+export interface HealthCheckerSummary {
   totalEntities: number;
   totalPlugins: number;
   totalPluginPackages: number;
@@ -489,9 +489,9 @@ export interface BlueprintSummary {
 }
 
 /**
- * Metadata about the blueprint generation
+ * Metadata about the health checker generation
  */
-export interface BlueprintMetadata {
+export interface HealthCheckerMetadata {
   generatedAt: Date;
   environment: string;
   solutionNames?: string[];
@@ -706,7 +706,7 @@ export interface DataverseAction {
 
 /**
  * Warning recorded when a discovery step fails partially or fully.
- * The blueprint continues — the affected section is empty or partial.
+ * The health checker continues — the affected section is empty or partial.
  */
 export interface StepWarning {
   /** Human-readable step name, e.g. "Security Roles" */
@@ -719,12 +719,12 @@ export interface StepWarning {
 }
 
 /**
- * Complete blueprint result
+ * Complete health checker result
  */
-export interface BlueprintResult {
-  metadata: BlueprintMetadata;
-  entities: EntityBlueprint[];
-  summary: BlueprintSummary;
+export interface HealthCheckerResult {
+  metadata: HealthCheckerMetadata;
+  entities: EntityHealthResult[];
+  summary: HealthCheckerSummary;
   plugins: PluginStep[];
   pluginsByEntity: Map<string, PluginStep[]>;
   flows: Flow[];

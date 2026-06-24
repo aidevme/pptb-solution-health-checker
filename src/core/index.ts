@@ -1,18 +1,18 @@
-/**
+﻿/**
  * Public API surface for the entire `core/` layer.
  *
  * @remarks
  * Two type sources coexist and serve different roles:
  * - `./types.ts` — root-level primitives (Publisher, Solution, EntityMetadata, PluginStep,
  *   ImageDefinition) shared across the whole codebase.
- * - `./types/` — domain-specific type modules (blueprint, classicWorkflow, crossEntityTrace, …).
+ * - `./types/` — domain-specific type modules (healthchecker, classicWorkflow, crossEntityTrace, …).
  *
  * Discovery services are split intentionally: `PublisherDiscovery` and `SolutionDiscovery`
  * are exported as runtime values because UI components (ScopeSelector) instantiate them.
  * All other discovery modules export types only — their classes are consumed exclusively
- * inside `BlueprintGenerator` and never referenced by UI directly.
+ * inside `HealthCheckerGenerator` and never referenced by UI directly.
  *
- * `BlueprintScope` is a re-export alias for `ScopeSelection` from `BlueprintGenerator`;
+ * `HealthCheckerScope` is a re-export alias for `ScopeSelection` from `HealthCheckerGenerator`;
  * the alias exists to avoid a name collision with `ScopeSelection` used elsewhere in the UI.
  *
  * `FetchLogger` itself is NOT re-exported here — consumers that need the class import it
@@ -34,6 +34,7 @@ export type { CustomConnector } from './types/customConnector.js';
 export type { CanvasApp } from './types/canvasApp.js';
 export type { CustomPage } from './types/customPage.js';
 export type { ModelDrivenApp } from './types/modelDrivenApp.js';
+export type { CodeApps, CodeAppSource } from './types/codeApps.js';
 export type {
   ProgressPhase,
   ProgressInfo,
@@ -59,10 +60,10 @@ export type {
   ExecutionPipeline,
   ExecutionStep,
   PerformanceRisk,
-  EntityBlueprint,
-  BlueprintSummary,
-  BlueprintMetadata,
-  BlueprintResult,
+  EntityHealthResult,
+  HealthCheckerSummary,
+  HealthCheckerMetadata,
+  HealthCheckerResult,
   ERDDefinition,
   ERDDiagram,
   ERDGraphData,
@@ -81,7 +82,7 @@ export type {
   FileNode,
   MarkdownExport,
   ExportProgress,
-} from './types/blueprint.js';
+} from './types/healthChecker.js';
 export type {
   ComponentInventory,
   WorkflowInventory,
@@ -120,8 +121,8 @@ export type {
 } from './discovery/ColumnSecurityDiscovery.js';
 
 // Generators
-export { BlueprintGenerator } from './generators/BlueprintGenerator.js';
-export type { ScopeSelection as BlueprintScope } from './generators/BlueprintGenerator.js';
+export { HealthCheckerGenerator } from './generators/HealthCheckerGenerator.js';
+export type { ScopeSelection as HealthCheckerScope } from './generators/HealthCheckerGenerator.js';
 
 // Cross-entity trace types
 export type {
@@ -142,6 +143,6 @@ export type {
 export { ExecutionOrderCalculator } from './analyzers/ExecutionOrderCalculator.js';
 export { PerformanceAnalyzer } from './analyzers/PerformanceAnalyzer.js';
 
-// Utils — FetchLogger types used by ProcessingScreen and useBlueprint via barrel
+// Utils — FetchLogger types used by ProcessingScreen and useHealthChecker via barrel
 // FetchLogger class is imported directly by consumers, not through this barrel
 export type { FetchLogEntry, FetchStatus, FetchSummary } from './utils/FetchLogger.js';

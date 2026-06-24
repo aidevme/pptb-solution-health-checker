@@ -29,7 +29,7 @@ const API_FILTER_SPECS: readonly FilterSpec<CustomAPI>[] = [
   { name: 'binding', getKey: (a) => a.bindingType },
 ];
 
-const useStyles = makeStyles({
+const useCustomAPIsListStyles = makeStyles({
   apiRow: {
     display: 'grid',
     gridTemplateColumns: `${tokens.spacingHorizontalXXL} minmax(200px, 2fr) auto auto auto`,
@@ -60,7 +60,7 @@ interface CustomAPIsListProps {
  * Card-row list of Custom APIs. Each row expands inline to show full details.
  */
 export function CustomAPIsList({ customAPIs }: CustomAPIsListProps) {
-  const styles = useStyles();
+  const styles = useCustomAPIsListStyles();
   const shared = useCardRowStyles();
   const [expandedApiId, setExpandedApiId] = useState<string | null>(null);
 

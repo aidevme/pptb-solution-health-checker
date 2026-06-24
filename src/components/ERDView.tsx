@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
+﻿import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import cytoscape from 'cytoscape';
 import type { Core, NodeSingular } from 'cytoscape';
 import {
@@ -25,7 +25,7 @@ import {
   Dismiss24Regular,
   Checkmark24Regular,
 } from '@fluentui/react-icons';
-import type { ERDDefinition, BlueprintResult } from '../core';
+import type { ERDDefinition, HealthCheckerResult } from '../core';
 import { generateDbDiagramCode } from '../utils/dbDiagramGenerator';
 import { EmptyState } from './EmptyState';
 import {
@@ -211,11 +211,11 @@ interface EdgeHoverInfo {
 
 export interface ERDViewProps {
   erd: ERDDefinition;
-  blueprintResult: BlueprintResult;
+  healthCheckerResult: HealthCheckerResult;
 }
 
 // ─── Component ────────────────────────────────────────────────────────────────
-export function ERDView({ erd, blueprintResult }: ERDViewProps) {
+export function ERDView({ erd, healthCheckerResult }: ERDViewProps) {
   const styles = useStyles();
   const graphRef = useRef<HTMLDivElement>(null);
   const cyRef = useRef<Core | null>(null);
@@ -552,7 +552,7 @@ export function ERDView({ erd, blueprintResult }: ERDViewProps) {
 
   // ── Copy dbdiagram.io ─────────────────────────────────────────────────────
   const handleCopyDbDiagram = () => {
-    navigator.clipboard.writeText(generateDbDiagramCode(blueprintResult));
+    navigator.clipboard.writeText(generateDbDiagramCode(healthCheckerResult));
     dispatchToast(
       <Toast><ToastTitle action={<Checkmark24Regular />}>dbdiagram.io code copied! Paste at https://dbdiagram.io/d</ToastTitle></Toast>,
       { intent: 'success', timeout: 3000 }

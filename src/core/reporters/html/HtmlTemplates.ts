@@ -1,5 +1,5 @@
-/**
- * Renders every structural part of the self-contained HTML blueprint report.
+﻿/**
+ * Renders every structural part of the self-contained HTML health checker report.
  *
  * @remarks
  * The output is a single `.html` file with no external asset dependencies except
@@ -16,11 +16,11 @@
  * so each section can call exactly the template it needs.
  */
 import type {
-  BlueprintResult,
-  BlueprintMetadata,
-  BlueprintSummary,
+  HealthCheckerResult,
+  HealthCheckerMetadata,
+  HealthCheckerSummary,
   ERDDefinition,
-  EntityBlueprint,
+  EntityHealthResult,
   PluginStep,
   Flow,
   BusinessRule,
@@ -31,7 +31,7 @@ import type {
   OneToManyRelationship,
   ManyToOneRelationship,
   ManyToManyRelationship,
-} from '../../types/blueprint.js';
+} from '../../types/healthChecker.js';
 import type { PrivilegeDetail } from '../../discovery/SecurityRoleDiscovery.js';
 import type { CrossEntityAnalysisResult } from '../../types/crossEntityTrace.js';
 import type { ClassicWorkflow } from '../../types/classicWorkflow.js';
@@ -49,13 +49,13 @@ export class HtmlTemplates {
   /**
    * Generate complete HTML head section
    */
-  htmlHead(result: BlueprintResult): string {
-    const title = `Blueprint - ${result.metadata.environment || 'Power Platform'}`;
+  htmlHead(result: HealthCheckerResult): string {
+    const title = `Health Checker - ${result.metadata.environment || 'Power Platform'}`;
     return `<head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="generator" content="Power Platform Solution Blueprint (PPSB)">
-  <meta name="description" content="Complete architectural blueprint for Power Platform solutions">
+  <meta name="generator" content="Power Platform Solution Health Checker (PPSB)">
+  <meta name="description" content="Complete architectural health check for Power Platform solutions">
   <meta http-equiv="Content-Security-Policy" content="script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; default-src 'self' 'unsafe-inline' data:">
   <title>${this.htmlEscape(title)}</title>
   <script>
@@ -88,9 +88,9 @@ ${this.embeddedCSS()}
    * Generate sidebar navigation
    */
   htmlNavigation(): string {
-    return `<nav class="sidebar" id="sidebar" role="navigation" aria-label="Blueprint sections">
+    return `<nav class="sidebar" id="sidebar" role="navigation" aria-label="Health Checker sections">
   <div class="sidebar-header">
-    <h3>Blueprint</h3>
+    <h3>Health Checker</h3>
     <button class="nav-toggle" id="navToggle" aria-label="Toggle navigation">☰</button>
   </div>
   <ul class="nav-links">
@@ -117,7 +117,7 @@ ${this.embeddedCSS()}
     <li><a href="#cross-entity">${this.navIcon('cross-entity')} Cross-Entity Automation <span class="badge badge-warning" style="font-size:0.7em;vertical-align:middle;">Preview</span></a></li>
   </ul>
   <div class="nav-footer">
-    <button class="btn-print" onclick="window.print()" aria-label="Print blueprint">${this.navIcon('print')} Print</button>
+    <button class="btn-print" onclick="window.print()" aria-label="Print health checker report">${this.navIcon('print')} Print</button>
   </div>
 </nav>`;
   }
@@ -125,10 +125,10 @@ ${this.embeddedCSS()}
   /**
    * Generate header section
    */
-  htmlHeader(metadata: BlueprintMetadata): string {
+  htmlHeader(metadata: HealthCheckerMetadata): string {
     const generatedDate = metadata.generatedAt.toLocaleString();
     return `<header class="report-header" role="banner">
-  <h1>Power Platform Solution Blueprint</h1>
+  <h1>Power Platform Solution Health Checker</h1>
   <div class="metadata-item" style="display:flex;flex-direction:column;gap:4px;">
     <div><span class="metadata-label">Environment:</span> <span class="metadata-value">${this.htmlEscape(metadata.environment)}</span></div>
     <div><span class="metadata-label">Generated:</span> <span class="metadata-value">${this.htmlEscape(generatedDate)}</span></div>
@@ -263,8 +263,8 @@ ${items}
   /**
    * Generate summary section
    */
-  htmlSummary(summary: BlueprintSummary): string {
-    return `<section id="summary" class="content-section" role="region" aria-label="Blueprint summary" aria-labelledby="heading-summary">
+  htmlSummary(summary: HealthCheckerSummary): string {
+    return `<section id="summary" class="content-section" role="region" aria-label="Health Checker summary" aria-labelledby="heading-summary">
   <h2 id="heading-summary">Summary</h2>
   <div class="summary-grid">
     <div class="summary-card">
@@ -342,7 +342,7 @@ ${items}
   /**
    * Generate entities accordion section
    */
-  htmlEntitiesAccordion(entities: EntityBlueprint[]): string {
+  htmlEntitiesAccordion(entities: EntityHealthResult[]): string {
     if (entities.length === 0) {
       return `<section id="entities" class="content-section" aria-labelledby="heading-entities">
   <h2 id="heading-entities">Entities</h2>
@@ -536,7 +536,7 @@ ${rows}
   /**
    * Check if entity has any automation
    */
-  private hasEntityAutomation(entityBp: EntityBlueprint): boolean {
+  private hasEntityAutomation(entityBp: EntityHealthResult): boolean {
     return entityBp.plugins.length > 0 ||
            entityBp.flows.length > 0 ||
            entityBp.businessRules.length > 0;
@@ -545,7 +545,7 @@ ${rows}
   /**
    * Check if entity has server-side execution pipeline
    */
-  private hasEntityExecutionPipeline(entityBp: EntityBlueprint): boolean {
+  private hasEntityExecutionPipeline(entityBp: EntityHealthResult): boolean {
     // Has plugins
     if (entityBp.plugins.length > 0) return true;
 
@@ -563,7 +563,7 @@ ${rows}
   /**
    * Generate Overview tab content for entity
    */
-  private generateEntityOverviewTab(entityBp: EntityBlueprint): string {
+  private generateEntityOverviewTab(entityBp: EntityHealthResult): string {
     const entity = entityBp.entity;
     const description = entity.Description?.UserLocalizedLabel?.Label || '';
 
@@ -612,7 +612,7 @@ ${rows}
   /**
    * Generate Schema tab content for entity
    */
-  private generateEntitySchemaTab(entityBp: EntityBlueprint): string {
+  private generateEntitySchemaTab(entityBp: EntityHealthResult): string {
     const entity = entityBp.entity;
     const attributes = entity.Attributes || [];
     const oneToMany = entity.OneToManyRelationships || [];
@@ -650,7 +650,7 @@ ${rows}
   /**
    * Generate Forms & Web Resources tab content for entity
    */
-  private generateEntityFormsTab(entityBp: EntityBlueprint): string {
+  private generateEntityFormsTab(entityBp: EntityHealthResult): string {
     if (!entityBp.forms || entityBp.forms.length === 0) {
       return '<div class="empty-state">No forms found</div>';
     }
@@ -711,7 +711,7 @@ ${rows}
   /**
    * Generate Automation tab content for entity
    */
-  private generateEntityAutomationTab(entityBp: EntityBlueprint): string {
+  private generateEntityAutomationTab(entityBp: EntityHealthResult): string {
     let content = '';
 
     const hasAutomation = entityBp.plugins.length > 0 || entityBp.flows.length > 0 || entityBp.businessRules.length > 0;
@@ -741,7 +741,7 @@ ${rows}
   /**
    * Generate Execution Pipeline tab content for entity
    */
-  private generateEntityPipelineTab(entityBp: EntityBlueprint): string {
+  private generateEntityPipelineTab(entityBp: EntityHealthResult): string {
     const entity = entityBp.entity;
     const displayName = entity.DisplayName?.UserLocalizedLabel?.Label || entity.LogicalName;
 
@@ -2177,7 +2177,7 @@ ${rows}
    */
   htmlFooter(): string {
     return `<footer class="report-footer" role="contentinfo">
-  <p>Generated by <strong>Power Platform Solution Blueprint (PPSB)</strong></p>
+  <p>Generated by <strong>Power Platform Solution Health Checker (PPSB)</strong></p>
   <p>For PPTB Desktop | <a href="https://powerplatformtoolbox.com" target="_blank">powerplatformtoolbox.com</a></p>
 </footer>`;
   }
@@ -3960,7 +3960,7 @@ ${this.embeddedJavaScript()}
   /**
    * Generate field security section for entity schema
    */
-  private generateFieldSecuritySection(fieldSecurity: import('../../types/blueprint.js').EntityBlueprint['fieldSecurity']): string {
+  private generateFieldSecuritySection(fieldSecurity: import('../../types/healthChecker.js').EntityHealthResult['fieldSecurity']): string {
     if (!fieldSecurity || fieldSecurity.securedFields.length === 0) {
       return '';
     }

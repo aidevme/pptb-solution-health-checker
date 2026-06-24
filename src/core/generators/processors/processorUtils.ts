@@ -1,5 +1,5 @@
-import type { FetchLogger } from '../../utils/FetchLogger.js';
-import type { StepWarning } from '../../types/blueprint.js';
+﻿import type { FetchLogger } from '../../utils/FetchLogger.js';
+import type { StepWarning } from '../../types/healthChecker.js';
 
 /**
  * Scans fetch-log entries added since `logWatermark` and emits a partial

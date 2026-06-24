@@ -1,5 +1,5 @@
-/**
- * Generates a multi-file Markdown export of a {@link BlueprintResult}.
+﻿/**
+ * Generates a multi-file Markdown export of a {@link HealthCheckerResult}.
  *
  * @remarks
  * Output is a {@link MarkdownExport} whose `files` map uses slash-separated virtual
@@ -19,8 +19,8 @@
  * edge are rendered in the SVG.
  */
 import type {
-  BlueprintResult,
-  EntityBlueprint,
+  HealthCheckerResult,
+  EntityHealthResult,
   FileNode,
   MarkdownExport,
   PluginStep,
@@ -29,7 +29,7 @@ import type {
   ExternalEndpoint,
   ERDDefinition,
   EntityQuickLink,
-} from '../types/blueprint.js';
+} from '../types/healthChecker.js';
 import type {
   CrossEntityAnalysisResult,
   CrossEntityEntityView,
@@ -55,7 +55,7 @@ import { calculateComplexityScore } from '../utils/complexity.js';
 import type { IReporter } from './IReporter.js';
 
 export class MarkdownReporter implements IReporter<MarkdownExport> {
-  generate(result: BlueprintResult): MarkdownExport {
+  generate(result: HealthCheckerResult): MarkdownExport {
     const files = new Map<string, string>();
 
     // Generate root README
@@ -87,13 +87,13 @@ export class MarkdownReporter implements IReporter<MarkdownExport> {
 
     // Generate per-entity cross-entity trace files (only if entity has entry points)
     if (result.crossEntityAnalysis) {
-      for (const blueprint of result.entities) {
-        const logicalName = blueprint.entity.LogicalName.toLowerCase();
+      for (const healthchecker of result.entities) {
+        const logicalName = healthchecker.entity.LogicalName.toLowerCase();
         if (result.crossEntityAnalysis.entityViews.has(logicalName)) {
           files.set(
-            `entities/${blueprint.entity.LogicalName}/cross-entity-trace.md`,
+            `entities/${healthchecker.entity.LogicalName}/cross-entity-trace.md`,
             this.generateEntityCrossEntityTrace(
-              blueprint,
+              healthchecker,
               result.crossEntityAnalysis.entityViews.get(logicalName)!,
               result.crossEntityAnalysis
             )
@@ -190,11 +190,11 @@ export class MarkdownReporter implements IReporter<MarkdownExport> {
   /**
    * Generate root README.md with ERD, legend, and navigation
    */
-  private generateReadme(result: BlueprintResult): string {
+  private generateReadme(result: HealthCheckerResult): string {
     const sections: string[] = [];
 
     // Title and metadata
-    sections.push(MarkdownFormatter.formatHeading('Power Platform Solution Blueprint', 1));
+    sections.push(MarkdownFormatter.formatHeading('Power Platform Solution Health Checker', 1));
     sections.push('');
     sections.push(`**Generated:** ${result.metadata.generatedAt.toISOString()}`);
     sections.push(`**Environment:** ${result.metadata.environment}`);
@@ -443,7 +443,7 @@ export class MarkdownReporter implements IReporter<MarkdownExport> {
   /**
    * Generate quick metrics summary
    */
-  private generateQuickMetrics(result: BlueprintResult): string {
+  private generateQuickMetrics(result: HealthCheckerResult): string {
     const items: string[] = [];
 
     items.push(`**${result.summary.totalEntities}** Entities`);
@@ -535,10 +535,10 @@ export class MarkdownReporter implements IReporter<MarkdownExport> {
   /**
    * Generate summary/metrics.md
    */
-  private generateMetrics(result: BlueprintResult): string {
+  private generateMetrics(result: HealthCheckerResult): string {
     const sections: string[] = [];
 
-    sections.push(MarkdownFormatter.formatHeading('Blueprint Metrics & Statistics', 1));
+    sections.push(MarkdownFormatter.formatHeading('Health Checker Metrics & Statistics', 1));
     sections.push('');
 
     // Overall counts
@@ -623,7 +623,7 @@ export class MarkdownReporter implements IReporter<MarkdownExport> {
   /**
    * Generate summary/all-plugins.md
    */
-  private generateAllPlugins(result: BlueprintResult): string {
+  private generateAllPlugins(result: HealthCheckerResult): string {
     const sections: string[] = [];
 
     sections.push(MarkdownFormatter.formatHeading('All Plugins', 1));
@@ -695,7 +695,7 @@ export class MarkdownReporter implements IReporter<MarkdownExport> {
   /**
    * Generate summary/all-flows.md
    */
-  private generateAllFlows(result: BlueprintResult): string {
+  private generateAllFlows(result: HealthCheckerResult): string {
     const sections: string[] = [];
 
     sections.push(MarkdownFormatter.formatHeading('All Cloud Flows', 1));
@@ -737,7 +737,7 @@ export class MarkdownReporter implements IReporter<MarkdownExport> {
   /**
    * Generate summary/all-business-rules.md
    */
-  private generateAllBusinessRules(result: BlueprintResult): string {
+  private generateAllBusinessRules(result: HealthCheckerResult): string {
     const sections: string[] = [];
 
     sections.push(MarkdownFormatter.formatHeading('All Business Rules', 1));
@@ -834,7 +834,7 @@ export class MarkdownReporter implements IReporter<MarkdownExport> {
   /**
    * Generate summary/all-classic-workflows.md
    */
-  private generateAllClassicWorkflows(result: BlueprintResult): string {
+  private generateAllClassicWorkflows(result: HealthCheckerResult): string {
     const sections: string[] = [];
 
     sections.push(MarkdownFormatter.formatHeading('All Classic Workflows', 1));
@@ -883,7 +883,7 @@ export class MarkdownReporter implements IReporter<MarkdownExport> {
   /**
    * Generate summary/all-webresources.md
    */
-  private generateAllWebResources(result: BlueprintResult): string {
+  private generateAllWebResources(result: HealthCheckerResult): string {
     const sections: string[] = [];
 
     sections.push(MarkdownFormatter.formatHeading('All Web Resources', 1));
@@ -940,7 +940,7 @@ export class MarkdownReporter implements IReporter<MarkdownExport> {
   /**
    * Generate summary/all-custom-apis.md
    */
-  private generateAllCustomAPIs(result: BlueprintResult): string {
+  private generateAllCustomAPIs(result: HealthCheckerResult): string {
     const sections: string[] = [];
 
     sections.push(MarkdownFormatter.formatHeading('All Custom APIs', 1));
@@ -1013,7 +1013,7 @@ export class MarkdownReporter implements IReporter<MarkdownExport> {
   /**
    * Generate summary/all-environment-variables.md
    */
-  private generateAllEnvironmentVariables(result: BlueprintResult): string {
+  private generateAllEnvironmentVariables(result: HealthCheckerResult): string {
     const sections: string[] = [];
 
     sections.push(MarkdownFormatter.formatHeading('All Environment Variables', 1));
@@ -1055,7 +1055,7 @@ export class MarkdownReporter implements IReporter<MarkdownExport> {
   /**
    * Generate summary/all-connection-references.md
    */
-  private generateAllConnectionReferences(result: BlueprintResult): string {
+  private generateAllConnectionReferences(result: HealthCheckerResult): string {
     const sections: string[] = [];
 
     sections.push(MarkdownFormatter.formatHeading('All Connection References', 1));
@@ -1085,7 +1085,7 @@ export class MarkdownReporter implements IReporter<MarkdownExport> {
   /**
    * Generate summary/all-global-choices.md
    */
-  private generateAllGlobalChoices(result: BlueprintResult): string {
+  private generateAllGlobalChoices(result: HealthCheckerResult): string {
     const sections: string[] = [];
 
     sections.push(MarkdownFormatter.formatHeading('All Global Choices', 1));
@@ -1117,7 +1117,7 @@ export class MarkdownReporter implements IReporter<MarkdownExport> {
   /**
    * Generate summary/all-custom-connectors.md
    */
-  private generateAllCustomConnectors(result: BlueprintResult): string {
+  private generateAllCustomConnectors(result: HealthCheckerResult): string {
     const sections: string[] = [];
 
     sections.push(MarkdownFormatter.formatHeading('All Custom Connectors', 1));
@@ -1148,7 +1148,7 @@ export class MarkdownReporter implements IReporter<MarkdownExport> {
   /**
    * Generate summary/all-business-process-flows.md
    */
-  private generateAllBusinessProcessFlows(result: BlueprintResult): string {
+  private generateAllBusinessProcessFlows(result: HealthCheckerResult): string {
     const sections: string[] = [];
 
     sections.push(MarkdownFormatter.formatHeading('All Business Process Flows', 1));
@@ -1208,7 +1208,7 @@ export class MarkdownReporter implements IReporter<MarkdownExport> {
   /**
    * Generate summary/external-integrations.md
    */
-  private generateExternalIntegrations(result: BlueprintResult): string {
+  private generateExternalIntegrations(result: HealthCheckerResult): string {
     const sections: string[] = [];
 
     sections.push(MarkdownFormatter.formatHeading('External Integrations', 1));
@@ -1254,7 +1254,7 @@ export class MarkdownReporter implements IReporter<MarkdownExport> {
   /**
    * Generate summary/cross-entity-automation.md
    */
-  private generateCrossEntityAutomation(result: BlueprintResult): string {
+  private generateCrossEntityAutomation(result: HealthCheckerResult): string {
     const sections: string[] = [];
     const analysis = result.crossEntityAnalysis;
 
@@ -1496,16 +1496,16 @@ export class MarkdownReporter implements IReporter<MarkdownExport> {
    * Generate entities/{entity}/cross-entity-trace.md
    */
   private generateEntityCrossEntityTrace(
-    blueprint: EntityBlueprint,
+    healthchecker: EntityHealthResult,
     view: CrossEntityEntityView,
     _analysis: CrossEntityAnalysisResult
   ): string {
     const sections: string[] = [];
-    const displayName = blueprint.entity.DisplayName?.UserLocalizedLabel?.Label || blueprint.entity.LogicalName;
+    const displayName = healthchecker.entity.DisplayName?.UserLocalizedLabel?.Label || healthchecker.entity.LogicalName;
 
     sections.push(MarkdownFormatter.formatHeading(`Cross-Entity Trace — ${displayName}`, 1));
     sections.push('');
-    sections.push(`**Entity:** \`${blueprint.entity.LogicalName}\``);
+    sections.push(`**Entity:** \`${healthchecker.entity.LogicalName}\``);
     sections.push(`**Entry Points:** ${view.traces.length}`);
     sections.push('');
 
@@ -1598,7 +1598,7 @@ export class MarkdownReporter implements IReporter<MarkdownExport> {
   /**
    * Generate summary/solution-distribution.md
    */
-  private generateSolutionDistribution(result: BlueprintResult): string {
+  private generateSolutionDistribution(result: HealthCheckerResult): string {
     const sections: string[] = [];
 
     sections.push(MarkdownFormatter.formatHeading('Solution Distribution', 1));
@@ -1651,7 +1651,7 @@ export class MarkdownReporter implements IReporter<MarkdownExport> {
   /**
    * Generate entities/{entity}/overview.md
    */
-  private generateEntityOverview(entity: EntityBlueprint, result: BlueprintResult): string {
+  private generateEntityOverview(entity: EntityHealthResult, result: HealthCheckerResult): string {
     const sections: string[] = [];
     const meta = entity.entity;
     const displayName = meta.DisplayName?.UserLocalizedLabel?.Label || meta.LogicalName;
@@ -1707,7 +1707,7 @@ export class MarkdownReporter implements IReporter<MarkdownExport> {
   /**
    * Generate entities/{entity}/schema.md
    */
-  private generateEntitySchema(entity: EntityBlueprint): string {
+  private generateEntitySchema(entity: EntityHealthResult): string {
     const sections: string[] = [];
     const meta = entity.entity;
     const displayName = meta.DisplayName?.UserLocalizedLabel?.Label || meta.LogicalName;
@@ -1887,7 +1887,7 @@ export class MarkdownReporter implements IReporter<MarkdownExport> {
   /**
    * Generate entities/{entity}/automation.md
    */
-  private generateEntityAutomation(entity: EntityBlueprint, result: BlueprintResult): string {
+  private generateEntityAutomation(entity: EntityHealthResult, result: HealthCheckerResult): string {
     const sections: string[] = [];
     const meta = entity.entity;
     const displayName = meta.DisplayName?.UserLocalizedLabel?.Label || meta.LogicalName;
@@ -2005,7 +2005,7 @@ export class MarkdownReporter implements IReporter<MarkdownExport> {
   /**
    * Generate entities/{entity}/execution-pipeline.md
    */
-  private generateExecutionPipeline(entity: EntityBlueprint, _result: BlueprintResult): string {
+  private generateExecutionPipeline(entity: EntityHealthResult, _result: HealthCheckerResult): string {
     const sections: string[] = [];
     const meta = entity.entity;
     const displayName = meta.DisplayName?.UserLocalizedLabel?.Label || meta.LogicalName;
@@ -2239,7 +2239,7 @@ export class MarkdownReporter implements IReporter<MarkdownExport> {
   /**
    * Generate entities/{entity}/business-process-flows.md
    */
-  private generateEntityBpfs(entity: EntityBlueprint, bpfs: BusinessProcessFlow[]): string {
+  private generateEntityBpfs(entity: EntityHealthResult, bpfs: BusinessProcessFlow[]): string {
     const sections: string[] = [];
     const meta = entity.entity;
     const displayName = meta.DisplayName?.UserLocalizedLabel?.Label || meta.LogicalName;
@@ -2285,7 +2285,7 @@ export class MarkdownReporter implements IReporter<MarkdownExport> {
   /**
    * Generate analysis/complexity-scores.md
    */
-  private generateComplexityScores(result: BlueprintResult): string {
+  private generateComplexityScores(result: HealthCheckerResult): string {
     const sections: string[] = [];
 
     sections.push(MarkdownFormatter.formatHeading('Entity Complexity Scores', 1));
@@ -2346,7 +2346,7 @@ export class MarkdownReporter implements IReporter<MarkdownExport> {
   /**
    * Generate analysis/performance-risks.md
    */
-  private generatePerformanceRisks(result: BlueprintResult): string {
+  private generatePerformanceRisks(result: HealthCheckerResult): string {
     const sections: string[] = [];
 
     sections.push(MarkdownFormatter.formatHeading('Performance Risks', 1));
@@ -2406,7 +2406,7 @@ export class MarkdownReporter implements IReporter<MarkdownExport> {
   /**
    * Generate analysis/migration-recommendations.md
    */
-  private generateMigrationRecommendations(result: BlueprintResult): string {
+  private generateMigrationRecommendations(result: HealthCheckerResult): string {
     const sections: string[] = [];
 
     sections.push(MarkdownFormatter.formatHeading('Migration Recommendations', 1));
@@ -2498,9 +2498,9 @@ export class MarkdownReporter implements IReporter<MarkdownExport> {
    */
   private buildFileTree(files: Map<string, string>): FileNode {
     const root: FileNode = {
-      name: 'blueprint',
+      name: 'healthchecker',
       type: 'directory',
-      path: 'blueprint',
+      path: 'healthchecker',
       children: [],
     };
 
@@ -2532,7 +2532,7 @@ export class MarkdownReporter implements IReporter<MarkdownExport> {
         existing = {
           name: part,
           type: isLast ? 'file' : 'directory',
-          path: `blueprint/${parts.slice(0, i + 1).join('/')}`,
+          path: `healthchecker/${parts.slice(0, i + 1).join('/')}`,
           children: isLast ? undefined : [],
         };
 
@@ -2552,7 +2552,7 @@ export class MarkdownReporter implements IReporter<MarkdownExport> {
   /**
    * Check if entity has any automation
    */
-  private hasAutomation(entity: EntityBlueprint, result: BlueprintResult): boolean {
+  private hasAutomation(entity: EntityHealthResult, result: HealthCheckerResult): boolean {
     // Check for plugins
     if (entity.plugins.length > 0) return true;
 
@@ -2577,7 +2577,7 @@ export class MarkdownReporter implements IReporter<MarkdownExport> {
    * Check if entity has execution pipeline components
    * (server-side automation that participates in the execution pipeline)
    */
-  private hasExecutionPipeline(entity: EntityBlueprint, result: BlueprintResult): boolean {
+  private hasExecutionPipeline(entity: EntityHealthResult, result: HealthCheckerResult): boolean {
     // Plugins are always part of execution pipeline
     if (entity.plugins.length > 0) return true;
 
@@ -2602,7 +2602,7 @@ export class MarkdownReporter implements IReporter<MarkdownExport> {
   /**
    * Get BPFs for a specific entity
    */
-  private getEntityBpfs(entityLogicalName: string, result: BlueprintResult): BusinessProcessFlow[] {
+  private getEntityBpfs(entityLogicalName: string, result: HealthCheckerResult): BusinessProcessFlow[] {
     const bpfs = result.businessProcessFlowsByEntity.get(entityLogicalName) || [];
     return bpfs;
   }
@@ -2678,7 +2678,7 @@ export class MarkdownReporter implements IReporter<MarkdownExport> {
   /**
    * Get solution for plugin (placeholder)
    */
-  private getPluginSolution(_plugin: PluginStep, _result: BlueprintResult): string {
+  private getPluginSolution(_plugin: PluginStep, _result: HealthCheckerResult): string {
     // This would need solution component mapping
     return 'Unknown';
   }
@@ -2688,7 +2688,7 @@ export class MarkdownReporter implements IReporter<MarkdownExport> {
   /**
    * Generate security overview with special permissions matrix
    */
-  private generateSecurityOverview(result: BlueprintResult): string {
+  private generateSecurityOverview(result: HealthCheckerResult): string {
     const sections: string[] = [];
 
     sections.push(MarkdownFormatter.formatHeading('Security Overview', 1));
@@ -2864,7 +2864,7 @@ export class MarkdownReporter implements IReporter<MarkdownExport> {
   /**
    * Generate field security profiles page
    */
-  private generateFieldSecurityProfiles(result: BlueprintResult): string {
+  private generateFieldSecurityProfiles(result: HealthCheckerResult): string {
     const sections: string[] = [];
 
     sections.push(MarkdownFormatter.formatHeading('Field Security Profiles', 1));
@@ -2899,7 +2899,7 @@ export class MarkdownReporter implements IReporter<MarkdownExport> {
   /**
    * Generate attribute masking rules page
    */
-  private generateAttributeMaskingRules(result: BlueprintResult): string {
+  private generateAttributeMaskingRules(result: HealthCheckerResult): string {
     const sections: string[] = [];
 
     sections.push(MarkdownFormatter.formatHeading('Attribute Masking Rules', 1));
@@ -2940,7 +2940,7 @@ export class MarkdownReporter implements IReporter<MarkdownExport> {
   /**
    * Generate column security profiles page
    */
-  private generateColumnSecurityProfiles(result: BlueprintResult): string {
+  private generateColumnSecurityProfiles(result: HealthCheckerResult): string {
     const sections: string[] = [];
 
     sections.push(MarkdownFormatter.formatHeading('Column Security Profiles', 1));
@@ -2987,7 +2987,7 @@ export class MarkdownReporter implements IReporter<MarkdownExport> {
   /**
    * Generate summary/all-canvas-apps.md
    */
-  private generateAllCanvasApps(result: BlueprintResult): string {
+  private generateAllCanvasApps(result: HealthCheckerResult): string {
     const sections: string[] = [];
 
     sections.push(MarkdownFormatter.formatHeading('All Canvas Apps', 1));
@@ -3017,7 +3017,7 @@ export class MarkdownReporter implements IReporter<MarkdownExport> {
   /**
    * Generate summary/all-custom-pages.md
    */
-  private generateAllCustomPages(result: BlueprintResult): string {
+  private generateAllCustomPages(result: HealthCheckerResult): string {
     const sections: string[] = [];
 
     sections.push(MarkdownFormatter.formatHeading('All Custom Pages', 1));
@@ -3047,7 +3047,7 @@ export class MarkdownReporter implements IReporter<MarkdownExport> {
   /**
    * Generate summary/all-model-driven-apps.md
    */
-  private generateAllModelDrivenApps(result: BlueprintResult): string {
+  private generateAllModelDrivenApps(result: HealthCheckerResult): string {
     const sections: string[] = [];
 
     sections.push(MarkdownFormatter.formatHeading('All Model-Driven Apps', 1));

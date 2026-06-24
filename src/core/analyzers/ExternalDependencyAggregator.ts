@@ -1,4 +1,4 @@
-import type { BlueprintResult, ExternalEndpoint, ExternalCallSource, RiskFactor } from '../types/blueprint.js';
+﻿import type { HealthCheckerResult, ExternalEndpoint, ExternalCallSource, RiskFactor } from '../types/healthChecker.js';
 
 /**
  * Aggregates external API dependencies found in flows and JavaScript web resources,
@@ -11,7 +11,7 @@ import type { BlueprintResult, ExternalEndpoint, ExternalCallSource, RiskFactor 
  * static allow-list; it does not reflect runtime security posture.
  */
 export class ExternalDependencyAggregator {
-  aggregateExternalDependencies(result: BlueprintResult): ExternalEndpoint[] {
+  aggregateExternalDependencies(result: HealthCheckerResult): ExternalEndpoint[] {
     const endpointMap = new Map<string, ExternalEndpoint>();
 
     // Collect from flows

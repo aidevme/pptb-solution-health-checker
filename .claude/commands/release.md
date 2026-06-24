@@ -3,7 +3,7 @@ allowed-tools: Task, Read, Bash
 description: Run the full PPSB release sequence. Invoke when the project owner says things like "ready for release", "run release", "trigger release", "cut a release", "prepare a release", or "release vX.Y.Z".
 ---
 
-Release sequence for Power Platform Solution Blueprint (PPSB).
+Release sequence for Power Platform Solution Health Checker (PPSB).
 Run every step in order. Do not skip steps. Do not proceed past a failed step.
 
 **Target version:** $ARGUMENTS

@@ -13,7 +13,7 @@ import type { CanvasApp } from '../core';
 import { EmptyState } from './EmptyState';
 import { useCardRowStyles } from '../styles';
 
-const useStyles = makeStyles({
+const useCanvasAppsListStyles = makeStyles({
   row: {
     display: 'grid',
     gridTemplateColumns: `${tokens.spacingHorizontalXXL} minmax(200px, 2fr) auto`,
@@ -27,7 +27,7 @@ interface CanvasAppsListProps {
 }
 
 export function CanvasAppsList({ canvasApps }: CanvasAppsListProps) {
-  const styles = useStyles();
+  const styles = useCanvasAppsListStyles();
   const shared = useCardRowStyles();
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');

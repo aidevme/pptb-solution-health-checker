@@ -147,7 +147,7 @@ Do not force optional parameters onto classes that don't use them. If a discover
 
 ### S5 — Dependency Inversion
 
-`BlueprintGenerator` directly instantiates all discovery classes. New discovery classes: follow the same pattern for now (grandfathered). Long-term: `DiscoveryFactory` injection pattern to be adopted.
+`HealthCheckGenerator` directly instantiates all discovery classes. New discovery classes: follow the same pattern for now (grandfathered). Long-term: `DiscoveryFactory` injection pattern to be adopted.
 
 ---
 

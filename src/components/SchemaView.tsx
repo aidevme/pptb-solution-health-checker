@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+﻿import { useState, useMemo } from 'react';
 import {
   Card,
   Title2,
@@ -12,7 +12,7 @@ import {
   SelectTabEvent,
 } from '@fluentui/react-components';
 import { Database24Regular } from '@fluentui/react-icons';
-import type { DetailedEntityMetadata, EntityBlueprint, ClassicWorkflow } from '../core';
+import type { DetailedEntityMetadata, EntityHealthResult, ClassicWorkflow } from '../core';
 import { isSystemRelationship } from '../core/utils/systemFilters';
 import { FieldsTable } from './FieldsTable';
 import { FormsTable } from './FormsTable';
@@ -75,17 +75,17 @@ const useStyles = makeStyles({
 
 export interface SchemaViewProps {
   schema?: DetailedEntityMetadata;
-  blueprint?: EntityBlueprint;
+  healthchecker?: EntityHealthResult;
   classicWorkflows?: ClassicWorkflow[];
   entitiesInScope?: string[]; // Logical names of entities in current selection
 }
 
-export function SchemaView({ schema: schemaProp, blueprint, classicWorkflows = [], entitiesInScope }: SchemaViewProps) {
+export function SchemaView({ schema: schemaProp, healthchecker, classicWorkflows = [], entitiesInScope }: SchemaViewProps) {
   const styles = useStyles();
   const [selectedTab, setSelectedTab] = useState<string>('fields');
 
-  // Use schema from blueprint if available, otherwise use direct schema prop
-  const schema = blueprint?.entity || schemaProp!;
+  // Use schema from healthchecker if available, otherwise use direct schema prop
+  const schema = healthchecker?.entity || schemaProp!;
 
   // Normalize entity names in scope for case-insensitive comparison
   const entitiesInScopeSet = useMemo(() => {
@@ -98,7 +98,7 @@ export function SchemaView({ schema: schemaProp, blueprint, classicWorkflows = [
 
   const attributeCount = schema.Attributes?.length || 0;
   const keysCount = schema.Keys?.length || 0;
-  const formsCount = blueprint?.forms.length || 0;
+  const formsCount = healthchecker?.forms.length || 0;
 
   // Filter out system relationships and relationships to entities not in scope
   const filteredOneToMany = useMemo(() => {
@@ -178,9 +178,9 @@ export function SchemaView({ schema: schemaProp, blueprint, classicWorkflows = [
   const manyToManyCount = filteredManyToMany.length;
 
   // Count automation (plugins, flows, business rules)
-  const pluginCount = blueprint?.plugins.length || 0;
-  const flowCount = blueprint?.flows.length || 0;
-  const businessRuleCount = blueprint?.businessRules.length || 0;
+  const pluginCount = healthchecker?.plugins.length || 0;
+  const flowCount = healthchecker?.flows.length || 0;
+  const businessRuleCount = healthchecker?.businessRules.length || 0;
   const totalAutomation = pluginCount + flowCount + businessRuleCount;
 
   return (
@@ -280,12 +280,12 @@ export function SchemaView({ schema: schemaProp, blueprint, classicWorkflows = [
           <Tab value="keys">
             Keys ({keysCount + 1})
           </Tab>
-          {blueprint && formsCount > 0 && (
+          {healthchecker && formsCount > 0 && (
             <Tab value="forms">
               Forms & Web Resources ({formsCount})
             </Tab>
           )}
-          {blueprint && totalAutomation > 0 && (
+          {healthchecker && totalAutomation > 0 && (
             <Tab value="execution-pipeline">
               Execution Pipeline ({totalAutomation})
             </Tab>
@@ -313,12 +313,12 @@ export function SchemaView({ schema: schemaProp, blueprint, classicWorkflows = [
             />
           )}
 
-          {selectedTab === 'forms' && blueprint && (
-            <FormsTable forms={blueprint.forms} />
+          {selectedTab === 'forms' && healthchecker && (
+            <FormsTable forms={healthchecker.forms} />
           )}
 
-          {selectedTab === 'execution-pipeline' && blueprint && (
-            <ExecutionPipelineView blueprint={blueprint} classicWorkflows={classicWorkflows} />
+          {selectedTab === 'execution-pipeline' && healthchecker && (
+            <ExecutionPipelineView healthCheckerResult={healthchecker} classicWorkflows={classicWorkflows} />
           )}
         </div>
       </Card>

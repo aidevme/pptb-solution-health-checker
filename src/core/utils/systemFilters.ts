@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Predicates for filtering Dataverse platform/infrastructure entities and relationships.
  *
  * @remarks
@@ -11,7 +11,7 @@
  * `customapirequestparameter`, `customapiresponseproperty` — these are user-authored
  * solution components, not platform infrastructure.
  */
-import type { EntityBlueprint } from '../types/blueprint.js';
+import type { EntityHealthResult } from '../types/healthChecker.js';
 
 // ---------------------------------------------------------------------------
 // Platform entity exclusion list
@@ -172,7 +172,7 @@ export function isBPFEntity(
 /**
  * Returns true when a platform entity has at least one custom relationship
  * (IsCustomRelationship === true) connecting it to an entity in the current
- * blueprint scope.
+ * health checker scope.
  *
  * Use as an override gate: if isSystemEntity() returns true, call this to
  * check whether the entity should still appear because of an explicit custom
@@ -180,7 +180,7 @@ export function isBPFEntity(
  */
 export function hasPlatformEntityCustomRelationship(
   platformEntityLogicalName: string,
-  scopedEntities: EntityBlueprint[]
+  scopedEntities: EntityHealthResult[]
 ): boolean {
   const platformName = platformEntityLogicalName.toLowerCase();
 
